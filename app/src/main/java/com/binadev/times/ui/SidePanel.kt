@@ -1,0 +1,167 @@
+package com.binadev.times.ui
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.tv.material3.ExperimentalTvMaterial3Api
+import androidx.tv.material3.Text
+import com.binadev.times.data.*
+import com.binadev.times.ui.theme.*
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+fun SidePanel(
+    zmanim: List<ZmanItem>,
+    hebrewInfo: HebrewCalendarInfo,
+    settings: AppSettings,
+) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .background(NavySidebar)
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+        ) {
+            // Parasha + Daf Yomi
+            if (hebrewInfo.parasha.isNotEmpty()) {
+                SideLabelValue("פרשת השבוע", hebrewInfo.parasha)
+            }
+            if (hebrewInfo.dafYomi.isNotEmpty()) {
+                SideLabelValue("הדף היומי", hebrewInfo.dafYomi)
+            }
+
+            SideDivider()
+
+            // Zmanim
+            SideSectionHeader("זמני היום")
+            zmanim.forEach { SideTimeRow(it) }
+
+            SideDivider()
+
+            // Seasonal flags
+            if (hebrewInfo.isMashivHaruach) FlagChip("משיב הרוח")
+            else FlagChip("מוריד הטל")
+            if (hebrewInfo.isWinterBlessingSeason) FlagChip("ברך עלינו") else FlagChip("ברכנו")
+            if (hebrewInfo.isYaaleVeyavo) FlagChip("יעלה ויבוא")
+            if (hebrewInfo.isShabbatMevorchim) FlagChip("שבת מברכים")
+            if (hebrewInfo.isTachanunOmitted) FlagChip("א\"א תחנון")
+            if (hebrewInfo.isTzidkatchaOmitted) FlagChip("א\"א צדקתך")
+
+            // Molad
+            if (hebrewInfo.moladText.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = hebrewInfo.moladText,
+                    fontSize = 9.5.sp,
+                    color = TextMuted,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            // Omer
+            if (hebrewInfo.omerText.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "ספירת העומר",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Gold,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    text = hebrewInfo.omerText,
+                    fontSize = 9.5.sp,
+                    color = GoldLight,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // City + minhag indicator
+            Text(
+                text = "${settings.city.nameHebrew} · ${settings.prayerSystem.hebrewName}",
+                fontSize = 10.sp,
+                color = TextMuted,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun SideSectionHeader(title: String) {
+    Text(
+        text = title,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Bold,
+        color = Gold,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 3.dp),
+    )
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun SideLabelValue(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 1.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(text = label, fontSize = 11.sp, color = TextSecondary)
+        Text(text = value, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun SideTimeRow(item: ZmanItem) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 1.5.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = item.label, fontSize = 11.sp, color = TextSecondary, textAlign = TextAlign.End)
+        Text(text = item.time, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = GoldLight)
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun FlagChip(text: String) {
+    Text(
+        text = "• $text",
+        fontSize = 11.sp,
+        color = GoldLight,
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+
+@Composable
+private fun SideDivider() {
+    Spacer(modifier = Modifier.height(4.dp))
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(NavyDivider)
+    )
+    Spacer(modifier = Modifier.height(4.dp))
+}
