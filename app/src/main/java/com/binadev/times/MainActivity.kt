@@ -149,7 +149,7 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
                 YahrtzeitLoader.load(context, settings.testDateTime)
             }
             moedSlides = withContext(Dispatchers.IO) {
-                MoedLoader.load(context, settings.testDateTime)
+                if (settings.showMoedSlides) MoedLoader.load(context, settings.testDateTime) else emptyList()
             }
             delay(60 * 60 * 1_000L)
         }

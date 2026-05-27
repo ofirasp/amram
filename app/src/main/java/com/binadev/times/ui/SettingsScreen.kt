@@ -53,6 +53,7 @@ fun SettingsScreen(
     }
     val firstFocus = remember { FocusRequester() }
 
+    var showMoedSlides by remember { mutableStateOf(currentSettings.showMoedSlides) }
     var testDateEnabled by remember { mutableStateOf(currentSettings.testDateTime != null) }
     val initCal = remember {
         Calendar.getInstance().apply {
@@ -166,6 +167,7 @@ fun SettingsScreen(
                                 )
                             }
                         }
+
                     }
 
                     // ── Title lines + Announcements editing ─────────────────
@@ -261,6 +263,23 @@ fun SettingsScreen(
                     }
                 }
 
+                // ── Moed checkbox ────────────────────────────────────────────
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        SettingsCheckbox(
+                            label = "הצג שקפי מועדים",
+                            checked = showMoedSlides,
+                            onToggle = { showMoedSlides = !showMoedSlides },
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(2f))
+                }
+
                 // ── Save / Cancel / Memo editor footer ───────────────────────
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(
@@ -297,6 +316,7 @@ fun SettingsScreen(
                                     testDateTime = testMs,
                                     titleLine1 = titleLine1,
                                     titleLine2 = titleLine2,
+                                    showMoedSlides = showMoedSlides,
                                 ))
                             },
                         )
@@ -632,6 +652,49 @@ private fun ActionButton(
             color = if (isAccent) NavyDark else TextPrimary,
             textAlign = TextAlign.Center,
         )
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun SettingsCheckbox(
+    label: String,
+    checked: Boolean,
+    onToggle: () -> Unit,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(if (isFocused) NavyDivider else NavyPanel)
+            .border(
+                width = if (isFocused) 2.dp else 1.dp,
+                color = if (isFocused) Gold else NavyDivider,
+                shape = RoundedCornerShape(8.dp),
+            )
+            .focusable(interactionSource = interactionSource)
+            .clickable(onClick = onToggle)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = label,
+            fontSize = 15.sp,
+            color = TextPrimary,
+        )
+        Box(
+            modifier = Modifier
+                .size(22.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(if (checked) Gold else NavyDark)
+                .border(1.dp, Gold, RoundedCornerShape(4.dp)),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (checked) Text("✓", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = NavyDark)
+        }
     }
 }
 

@@ -40,6 +40,7 @@ data class AppSettings(
     val testDateTime: Long? = null,
     val titleLine1: String = "בית הכנסת היכל עמרם",
     val titleLine2: String = "ואני ברב חסדך אבוא ביתך אשתחווה אל היכל קדשך ביראתך",
+    val showMoedSlides: Boolean = true,
 )
 
 object SettingsStore {
@@ -50,6 +51,7 @@ object SettingsStore {
     private const val KEY_TEST_DATE_TIME = "test_date_time"
     private const val KEY_TITLE_LINE1 = "title_line1"
     private const val KEY_TITLE_LINE2 = "title_line2"
+    private const val KEY_SHOW_MOED = "show_moed"
 
     fun save(context: Context, settings: AppSettings) {
         val idx = PresetCities.indexOfFirst { it.nameEnglish == settings.city.nameEnglish }.coerceAtLeast(0)
@@ -61,6 +63,7 @@ object SettingsStore {
             .putLong(KEY_TEST_DATE_TIME, settings.testDateTime ?: -1L)
             .putString(KEY_TITLE_LINE1, settings.titleLine1)
             .putString(KEY_TITLE_LINE2, settings.titleLine2)
+            .putBoolean(KEY_SHOW_MOED, settings.showMoedSlides)
             .apply()
     }
 
@@ -79,6 +82,7 @@ object SettingsStore {
         val testDateTime = prefs.getLong(KEY_TEST_DATE_TIME, -1L).let { if (it == -1L) null else it }
         val titleLine1 = prefs.getString(KEY_TITLE_LINE1, null) ?: "בית הכנסת היכל עמרם"
         val titleLine2 = prefs.getString(KEY_TITLE_LINE2, null) ?: "ואני ברב חסדך אבוא ביתך אשתחווה אל היכל קדשך ביראתך"
-        return AppSettings(PresetCities[idx], system, announcements, testDateTime, titleLine1, titleLine2)
+        val showMoedSlides = prefs.getBoolean(KEY_SHOW_MOED, true)
+        return AppSettings(PresetCities[idx], system, announcements, testDateTime, titleLine1, titleLine2, showMoedSlides)
     }
 }
