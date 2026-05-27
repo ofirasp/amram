@@ -99,7 +99,7 @@ private fun SideSectionHeader(title: String) {
         text = title,
         fontSize = 12.sp,
         fontWeight = FontWeight.Bold,
-        color = White,
+        color = Gold,
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 3.dp),

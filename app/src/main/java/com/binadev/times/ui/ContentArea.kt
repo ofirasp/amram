@@ -200,7 +200,7 @@ private fun YahrtzeitCard(entry: YahrtzeitEntry, modifier: Modifier = Modifier) 
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = "${entry.name} ${entry.relationship} ${entry.motherName}",
-                fontSize = 19.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = White,
                 textAlign = TextAlign.Center
