@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+
+    <!-- Background -->
+    <path
+        android:fillColor="#0A0E1A"
+        android:pathData="M0,0 L320,0 L320,180 L0,180 Z"/>
+
+    <!-- Subtle inner background panel -->
+    <path
+        android:fillColor="#0F1629"
+        android:pathData="M10,10 L310,10 L310,170 L10,170 Z"/>
+
+    <!-- Outer gold border -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#D4AF37"
+        android:strokeWidth="2.5"
+        android:pathData="M5,5 L315,5 L315,175 L5,175 Z"/>
+
+    <!-- Inner gold border -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#D4AF37"
+        android:strokeWidth="1"
+        android:pathData="M10,10 L310,10 L310,170 L10,170 Z"/>
+
+    <!-- Corner ornaments TL -->
+    <path android:fillColor="#D4AF37" android:pathData="M5,5 L20,5 L20,7 L7,7 L7,20 L5,20 Z"/>
+    <!-- Corner ornaments TR -->
+    <path android:fillColor="#D4AF37" android:pathData="M315,5 L300,5 L300,7 L313,7 L313,20 L315,20 Z"/>
+    <!-- Corner ornaments BL -->
+    <path android:fillColor="#D4AF37" android:pathData="M5,175 L20,175 L20,173 L7,173 L7,160 L5,160 Z"/>
+    <!-- Corner ornaments BR -->
+    <path android:fillColor="#D4AF37" android:pathData="M315,175 L300,175 L300,173 L313,173 L313,160 L315,160 Z"/>
+
+    <!-- Decorative horizontal line left -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#D4AF37"
+        android:strokeWidth="1"
+        android:pathData="M18,90 L100,90"/>
+
+    <!-- Decorative horizontal line right -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#D4AF37"
+        android:strokeWidth="1"
+        android:pathData="M220,90 L302,90"/>
+
+    <!-- Diamond left -->
+    <path android:fillColor="#D4AF37" android:pathData="M108,90 L114,84 L120,90 L114,96 Z"/>
+    <!-- Diamond right -->
+    <path android:fillColor="#D4AF37" android:pathData="M200,90 L206,84 L212,90 L206,96 Z"/>
+
+    <!-- Star of David — center (160,90), radius 52 -->
+    <!-- Upward triangle (stroke) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#D4AF37"
+        android:strokeWidth="2.5"
+        android:pathData="M160,38 L114.9,128 L205.1,128 Z"/>
+
+    <!-- Downward triangle (stroke) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#D4AF37"
+        android:strokeWidth="2.5"
+        android:pathData="M160,142 L114.9,52 L205.1,52 Z"/>
+
+    <!-- Center dot of star -->
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M160,85 A5,5 0 1,1 159.99,85 Z"/>
+
+    <!-- Small dots top/bottom/left/right of star -->
+    <path android:fillColor="#D4AF37" android:pathData="M160,34 A2.5,2.5 0 1,1 159.99,34 Z"/>
+    <path android:fillColor="#D4AF37" android:pathData="M160,146 A2.5,2.5 0 1,1 159.99,146 Z"/>
+    <path android:fillColor="#D4AF37" android:pathData="M111,90 A2.5,2.5 0 1,1 110.99,90 Z"/>
+    <path android:fillColor="#D4AF37" android:pathData="M209,90 A2.5,2.5 0 1,1 208.99,90 Z"/>
+
+</vector>

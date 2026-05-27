@@ -2,36 +2,18 @@ package com.binadev.times.data
 
 import android.content.Context
 import com.kosherjava.zmanim.hebrewcalendar.JewishCalendar
-import java.nio.charset.Charset
 import java.util.Date
 
 object YahrtzeitLoader {
 
     fun load(context: Context, testDateTimeMs: Long? = null): List<YahrtzeitEntry> {
         val cal = if (testDateTimeMs != null) JewishCalendar(Date(testDateTimeMs)) else JewishCalendar()
-        val month = cal.jewishMonth
-        val filename = monthFileName(month) ?: return emptyList()
-        return try {
-            context.assets.open("memo/$filename.csv")
-                .bufferedReader(Charset.forName("windows-1255"))
-                .readLines()
-                .filter { it.isNotBlank() }
-                .mapNotNull { parseLine(it) }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-    // CSV column order: date, motherName, relationship, name
-    private fun parseLine(line: String): YahrtzeitEntry? {
-        val parts = line.split(",")
-        if (parts.size < 4) return null
-        return YahrtzeitEntry(
-            date         = parts[0].trim(),
-            motherName   = parts[1].trim(),
-            relationship = parts[2].trim(),
-            name         = parts[3].trim(),
-        )
+        val currentMonthFile = monthFileName(cal.jewishMonth) ?: return emptyList()
+        val currentMonth = MemoRepository.load(context, currentMonthFile)
+        val yearlyFromOthers = MemoRepository.allMonths
+            .filter { it != currentMonthFile }
+            .flatMap { month -> MemoRepository.load(context, month).filter { it.yearly } }
+        return currentMonth + yearlyFromOthers
     }
 
     private fun monthFileName(month: Int) = when (month) {

@@ -25,6 +25,7 @@ import androidx.tv.material3.Text
 import com.binadev.times.R
 import com.binadev.times.data.*
 import com.binadev.times.ui.ContentArea
+import com.binadev.times.ui.MemoEditorScreen
 import com.binadev.times.ui.PrayerTimesPanel
 import com.binadev.times.ui.SettingsScreen
 import com.binadev.times.ui.SidePanel
@@ -40,7 +41,7 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
-private enum class Screen { MAIN, SETTINGS }
+private enum class Screen { MAIN, SETTINGS, MEMO_EDITOR }
 
 class MainActivity : ComponentActivity() {
 
@@ -94,6 +95,8 @@ fun SynagogueApp(initialSettings: AppSettings, openSettingsRequest: MutableState
         }
     }
 
+    var yahrtzeitReloadKey by remember { mutableIntStateOf(0) }
+
     BackHandler(enabled = screen == Screen.SETTINGS) {
         screen = Screen.MAIN
     }
@@ -104,7 +107,7 @@ fun SynagogueApp(initialSettings: AppSettings, openSettingsRequest: MutableState
         label = "screen",
     ) { currentScreen ->
         when (currentScreen) {
-            Screen.MAIN -> SynagogueScreen(settings = settings)
+            Screen.MAIN -> SynagogueScreen(settings = settings, yahrtzeitReloadKey = yahrtzeitReloadKey)
             Screen.SETTINGS -> SettingsScreen(
                 currentSettings = settings,
                 onSave = { newSettings ->
@@ -113,6 +116,11 @@ fun SynagogueApp(initialSettings: AppSettings, openSettingsRequest: MutableState
                     screen = Screen.MAIN
                 },
                 onDismiss = { screen = Screen.MAIN },
+                onOpenMemoEditor = { screen = Screen.MEMO_EDITOR },
+            )
+            Screen.MEMO_EDITOR -> MemoEditorScreen(
+                onDismiss = { screen = Screen.SETTINGS },
+                onSaved = { yahrtzeitReloadKey++ },
             )
         }
     }
@@ -120,7 +128,7 @@ fun SynagogueApp(initialSettings: AppSettings, openSettingsRequest: MutableState
 
 @OptIn(ExperimentalTvMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
-fun SynagogueScreen(settings: AppSettings) {
+fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
     val context = LocalContext.current
     var slideIndex by remember { mutableIntStateOf(0) }
     var currentTime by remember { mutableStateOf("") }
@@ -131,8 +139,8 @@ fun SynagogueScreen(settings: AppSettings) {
         SynagogueData.buildSlides(settings.announcements, yahrzeits, moedSlides)
     }
 
-    // Recalculate zmanim + load yahrzeits + load moed slides when settings change, refresh every hour
-    LaunchedEffect(settings) {
+    // Recalculate zmanim + load yahrzeits + load moed slides when settings change or memo editor saves, refresh every hour
+    LaunchedEffect(settings, yahrtzeitReloadKey) {
         while (true) {
             daily = withContext(Dispatchers.Default) {
                 ZmanimCalculator.calculateAll(settings)

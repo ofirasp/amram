@@ -11,6 +11,7 @@ data class YahrtzeitEntry(
     val relationship: String,
     val motherName: String,
     val date: String,
+    val yearly: Boolean = false,
 )
 
 data class HebrewCalendarInfo(

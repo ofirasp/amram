@@ -42,6 +42,7 @@ fun SettingsScreen(
     currentSettings: AppSettings,
     onSave: (AppSettings) -> Unit,
     onDismiss: () -> Unit,
+    onOpenMemoEditor: () -> Unit = {},
 ) {
     var selectedCity    by remember { mutableStateOf(currentSettings.city) }
     var selectedSystem  by remember { mutableStateOf(currentSettings.prayerSystem) }
@@ -260,12 +261,19 @@ fun SettingsScreen(
                     }
                 }
 
-                // ── Save / Cancel footer ─────────────────────────────────────
+                // ── Save / Cancel / Memo editor footer ───────────────────────
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        ActionButton(
+                            text = "עריכת השכבות",
+                            isAccent = false,
+                            onClick = onOpenMemoEditor,
+                        )
+                    }
                     Box(modifier = Modifier.weight(1f)) {
                         ActionButton(
                             text = "שמור הגדרות",

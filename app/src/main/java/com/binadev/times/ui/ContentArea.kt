@@ -191,24 +191,18 @@ private fun YahrtzeitCard(entry: YahrtzeitEntry, modifier: Modifier = Modifier) 
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = entry.name,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = Gold,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = "${entry.relationship} ${entry.motherName}",
-                fontSize = 12.sp,
-                color = TextSecondary,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
                 text = entry.date,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = GoldLight,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "${entry.name} ${entry.relationship} ${entry.motherName}",
+                fontSize = 19.sp,
+                fontWeight = FontWeight.Bold,
+                color = White,
                 textAlign = TextAlign.Center
             )
         }
