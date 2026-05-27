@@ -139,6 +139,9 @@ object ZmanimCalculator {
             } else {
                 formatter.formatParsha(shabbatCal)
             }
+            val haftara = if (!shabbatCal.isYomTovAssurBemelacha && !shabbatCal.isCholHamoed) {
+                haftaraForParsha(shabbatCal)
+            } else ""
 
             // Daf Yomi
             val daf = jewishCal.dafYomiBavli
@@ -164,6 +167,7 @@ object ZmanimCalculator {
             HebrewCalendarInfo(
                 hebrewDate = dateStr,
                 parasha = parasha,
+                haftara = haftara,
                 dafYomi = dafStr,
                 isYaaleVeyavo = isYaaleVeyavDay(jewishCal),
                 isMashivHaruach = isMashivHaruach(month, day),
@@ -337,6 +341,91 @@ object ZmanimCalculator {
         3 to "ושלשה ימים",  4 to "וארבעה ימים",
         5 to "וחמישה ימים", 6 to "וששה ימים",
     )
+
+    // ── Haftara lookup ────────────────────────────────────────────────────────
+
+    private fun haftaraForParsha(shabbatCal: JewishCalendar): String {
+        // Special Shabbatot override the regular haftara
+        val special = shabbatCal.specialShabbos
+        if (special != JewishCalendar.Parsha.NONE) {
+            return when (special) {
+                JewishCalendar.Parsha.SHKALIM   -> "בשנת שבע"
+                JewishCalendar.Parsha.ZACHOR     -> "ויאמר שמואל"
+                JewishCalendar.Parsha.PARA       -> "ויהי דבר"
+                JewishCalendar.Parsha.HACHODESH  -> "כה אמר"
+                else -> ""
+            }
+        }
+        // Shabbat Hagadol (Shabbat before Pesach: 10–14 Nisan)
+        if (shabbatCal.jewishMonth == JewishCalendar.NISSAN &&
+            shabbatCal.jewishDayOfMonth in 10..14) {
+            return "וערבה לה'"
+        }
+        return when (shabbatCal.parshah) {
+            JewishCalendar.Parsha.BERESHIS             -> "כה אמר"
+            JewishCalendar.Parsha.NOACH                -> "רני עקרה"
+            JewishCalendar.Parsha.LECH_LECHA           -> "למה תאמר"
+            JewishCalendar.Parsha.VAYERA               -> "ואשה אחת"
+            JewishCalendar.Parsha.CHAYEI_SARA          -> "והמלך דוד"
+            JewishCalendar.Parsha.TOLDOS               -> "משא דבר"
+            JewishCalendar.Parsha.VAYETZEI             -> "ויברח יעקב"
+            JewishCalendar.Parsha.VAYISHLACH           -> "ועמי תלואים"
+            JewishCalendar.Parsha.VAYESHEV             -> "כה אמר"
+            JewishCalendar.Parsha.MIKETZ               -> "וייקץ שלמה"
+            JewishCalendar.Parsha.VAYIGASH             -> "ויהי דבר"
+            JewishCalendar.Parsha.VAYECHI              -> "ויקרבו ימי"
+            JewishCalendar.Parsha.SHEMOS               -> "דברי ירמיהו"
+            JewishCalendar.Parsha.VAERA                -> "כה אמר"
+            JewishCalendar.Parsha.BO                   -> "הדבר אשר"
+            JewishCalendar.Parsha.BESHALACH            -> "ודבורה אשה"
+            JewishCalendar.Parsha.YISRO                -> "בשנת מות"
+            JewishCalendar.Parsha.MISHPATIM            -> "הדבר אשר"
+            JewishCalendar.Parsha.TERUMAH              -> "וה' נתן"
+            JewishCalendar.Parsha.TETZAVEH             -> "אתה בן"
+            JewishCalendar.Parsha.KI_SISA              -> "ויהי ימים"
+            JewishCalendar.Parsha.VAYAKHEL             -> "ויעש חירם"
+            JewishCalendar.Parsha.PEKUDEI              -> "ותשלם כל"
+            JewishCalendar.Parsha.VAYAKHEL_PEKUDEI     -> "ויעש חירם"
+            JewishCalendar.Parsha.VAYIKRA              -> "עם זו"
+            JewishCalendar.Parsha.TZAV                 -> "כה אמר"
+            JewishCalendar.Parsha.SHMINI               -> "ויסף עוד"
+            JewishCalendar.Parsha.TAZRIA               -> "ואיש בא"
+            JewishCalendar.Parsha.METZORA              -> "וארבעה אנשים"
+            JewishCalendar.Parsha.TAZRIA_METZORA       -> "וארבעה אנשים"
+            JewishCalendar.Parsha.ACHREI_MOS           -> "ויהי דבר"
+            JewishCalendar.Parsha.KEDOSHIM             -> "הלא כבני"
+            JewishCalendar.Parsha.ACHREI_MOS_KEDOSHIM  -> "הלא כבני"
+            JewishCalendar.Parsha.EMOR                 -> "והכהנים הלוים"
+            JewishCalendar.Parsha.BEHAR                -> "ויהי דבר"
+            JewishCalendar.Parsha.BECHUKOSAI           -> "ה' עוזי"
+            JewishCalendar.Parsha.BEHAR_BECHUKOSAI     -> "ה' עוזי"
+            JewishCalendar.Parsha.BAMIDBAR             -> "והיה מספר"
+            JewishCalendar.Parsha.NASSO                -> "ויהי איש"
+            JewishCalendar.Parsha.BEHAALOSCHA          -> "רני ושמחי"
+            JewishCalendar.Parsha.SHLACH               -> "וישלח יהושע"
+            JewishCalendar.Parsha.KORACH               -> "ויאמר שמואל"
+            JewishCalendar.Parsha.CHUKAS               -> "ויפתח הגלעדי"
+            JewishCalendar.Parsha.BALAK                -> "והיה שארית"
+            JewishCalendar.Parsha.CHUKAS_BALAK         -> "והיה שארית"
+            JewishCalendar.Parsha.PINCHAS              -> "ויהי יד"
+            JewishCalendar.Parsha.MATOS                -> "דברי ירמיהו"
+            JewishCalendar.Parsha.MASEI                -> "שמעו דבר"
+            JewishCalendar.Parsha.MATOS_MASEI          -> "שמעו דבר"
+            JewishCalendar.Parsha.DEVARIM              -> "חזון ישעיהו"
+            JewishCalendar.Parsha.VAESCHANAN           -> "נחמו נחמו"
+            JewishCalendar.Parsha.EIKEV                -> "ותאמר ציון"
+            JewishCalendar.Parsha.REEH                 -> "עניה סוערה"
+            JewishCalendar.Parsha.SHOFTIM              -> "אנכי אנכי"
+            JewishCalendar.Parsha.KI_SEITZEI           -> "רני עקרה"
+            JewishCalendar.Parsha.KI_SAVO              -> "קומי אורי"
+            JewishCalendar.Parsha.NITZAVIM             -> "שוש אשיש"
+            JewishCalendar.Parsha.VAYEILECH            -> "שובה ישראל"
+            JewishCalendar.Parsha.NITZAVIM_VAYEILECH   -> "שוש אשיש"
+            JewishCalendar.Parsha.HAAZINU              -> "וידבר דוד"
+            JewishCalendar.Parsha.VZOS_HABERACHA       -> "ויהי אחרי"
+            else -> ""
+        }
+    }
 
     // ── Format helper ─────────────────────────────────────────────────────────
 

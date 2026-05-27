@@ -265,23 +265,38 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
                 }
             }
 
-            // פרשת השבוע — right side of header
+            // פרשת השבוע + הפטרה — right side of header
             if (daily.hebrewInfo.parasha.isNotEmpty()) {
-                Column(
+                Row(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
-                        .offset(y = (-18).dp)
-                        .padding(end = w * 0.09f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                        .offset(y = (-18).dp, x = (-40).dp)
+                        .padding(end = w * 0.05f),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(text = "פרשת השבוע", fontSize = 10.sp, color = White.copy(alpha = 0.7f))
-                    Text(
-                        text = daily.hebrewInfo.parasha,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = White,
-                        textAlign = TextAlign.Center,
-                    )
+                    if (daily.hebrewInfo.haftara.isNotEmpty()) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = "הפטרה", fontSize = 10.sp, color = White.copy(alpha = 0.7f))
+                            Text(
+                                text = daily.hebrewInfo.haftara,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = White,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(text = "פרשת השבוע", fontSize = 10.sp, color = White.copy(alpha = 0.7f))
+                        Text(
+                            text = daily.hebrewInfo.parasha,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = White,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
         }
