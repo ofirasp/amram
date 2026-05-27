@@ -32,7 +32,7 @@ data class HebrewCalendarInfo(
 
 sealed class SlideContent {
     data class Announcements(val items: List<String>) : SlideContent()
-    data class TorahLesson(val body: String) : SlideContent()
+    data class TorahLesson(val body: String, val imageAsset: String? = null) : SlideContent()
     data class Yahrzeits(val entries: List<YahrtzeitEntry>) : SlideContent()
 }
 

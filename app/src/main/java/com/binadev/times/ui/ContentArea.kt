@@ -1,5 +1,6 @@
 package com.binadev.times.ui
 
+import android.graphics.BitmapFactory
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -7,9 +8,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -29,6 +34,16 @@ import com.binadev.times.ui.theme.*
 @OptIn(ExperimentalTvMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int) {
+    val context = LocalContext.current
+    val torahImage = remember(slide) {
+        val asset = (slide.content as? SlideContent.TorahLesson)?.imageAsset
+        if (asset != null) {
+            runCatching {
+                context.assets.open("pics/$asset").use { BitmapFactory.decodeStream(it) }
+            }.getOrNull()
+        } else null
+    }
+
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Box(
             modifier = Modifier
@@ -59,6 +74,15 @@ fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int) {
                             painter = painterResource(R.drawable.ic_candle),
                             contentDescription = null,
                             modifier = Modifier.size(32.dp),
+                        )
+                    }
+                    if (torahImage != null) {
+                        Spacer(modifier = Modifier.weight(1f))
+                        Image(
+                            bitmap = torahImage.asImageBitmap(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.height(52.dp).wrapContentWidth(),
                         )
                     }
                 }

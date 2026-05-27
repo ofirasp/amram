@@ -128,8 +128,9 @@ object ZmanimCalculator {
 
             val dateStr = formatter.format(jewishCal)
 
-            // Parasha: advance to next Shabbat if needed
+            // Parasha: advance to next Shabbat if needed — Israel cycle
             val shabbatCal = jewishCal.clone() as JewishCalendar
+            shabbatCal.inIsrael = true
             while (shabbatCal.dayOfWeek != Calendar.SATURDAY) {
                 shabbatCal.forward(Calendar.DATE, 1)
             }

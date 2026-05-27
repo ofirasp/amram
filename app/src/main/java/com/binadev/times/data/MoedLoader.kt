@@ -12,7 +12,7 @@ object MoedLoader {
         val year = today.jewishYear
 
         return try {
-            context.assets.open("amram/moedtext.csv").bufferedReader(Charsets.UTF_8).use { reader ->
+            context.assets.open("amram/moedtext2.csv").bufferedReader(Charsets.UTF_8).use { reader ->
                 reader.readLines()
                     .drop(1)
                     .filter { it.isNotBlank() }
@@ -22,6 +22,7 @@ object MoedLoader {
 
                         val toDateStr   = cols[0].trim()
                         val fromDateStr = cols[1].trim()
+                        val imageAsset  = cols[2].trim().takeIf { it.isNotBlank() }
                         val content3    = cols[3].trim()
                         val content2    = cols[4].trim()
                         val content1    = cols[5].trim()
@@ -33,9 +34,9 @@ object MoedLoader {
                         if (todayAbs < fromAbs || todayAbs > toAbs) return@flatMap emptyList()
 
                         buildList {
-                            if (content1.isNotBlank()) add(ContentSlide(title, SlideContent.TorahLesson(content1)))
-                            if (content2.isNotBlank()) add(ContentSlide(title, SlideContent.TorahLesson(content2)))
-                            if (content3.isNotBlank()) add(ContentSlide(title, SlideContent.TorahLesson(content3)))
+                            if (content1.isNotBlank()) add(ContentSlide(title, SlideContent.TorahLesson(content1, imageAsset)))
+                            if (content2.isNotBlank()) add(ContentSlide(title, SlideContent.TorahLesson(content2, imageAsset)))
+                            if (content3.isNotBlank()) add(ContentSlide(title, SlideContent.TorahLesson(content3, imageAsset)))
                         }
                     }
             }
