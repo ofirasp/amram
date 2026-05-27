@@ -6,6 +6,8 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.darkColorScheme
 
+val Black = Color(0xFF000000)
+val White = Color(0xFFFFFFFF)
 val Gold = Color(0xFFD4AF37)
 val GoldLight = Color(0xFFF5D769)
 val NavyDark = Color(0xFF0A0E1A)

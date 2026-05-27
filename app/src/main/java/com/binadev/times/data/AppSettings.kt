@@ -38,6 +38,8 @@ data class AppSettings(
     val prayerSystem: PrayerSystem = PrayerSystem.MIZRACHI,
     val announcements: List<String> = defaultAnnouncements,
     val testDateTime: Long? = null,
+    val titleLine1: String = "בית הכנסת היכל עמרם",
+    val titleLine2: String = "ואני ברב חסדך אבוא ביתך אשתחווה אל היכל קדשך ביראתך",
 )
 
 object SettingsStore {
@@ -46,6 +48,8 @@ object SettingsStore {
     private const val KEY_SYSTEM = "prayer_system"
     private const val KEY_ANNOUNCEMENTS = "announcements"
     private const val KEY_TEST_DATE_TIME = "test_date_time"
+    private const val KEY_TITLE_LINE1 = "title_line1"
+    private const val KEY_TITLE_LINE2 = "title_line2"
 
     fun save(context: Context, settings: AppSettings) {
         val idx = PresetCities.indexOfFirst { it.nameEnglish == settings.city.nameEnglish }.coerceAtLeast(0)
@@ -55,6 +59,8 @@ object SettingsStore {
             .putString(KEY_SYSTEM, settings.prayerSystem.name)
             .putString(KEY_ANNOUNCEMENTS, announcementsJson)
             .putLong(KEY_TEST_DATE_TIME, settings.testDateTime ?: -1L)
+            .putString(KEY_TITLE_LINE1, settings.titleLine1)
+            .putString(KEY_TITLE_LINE2, settings.titleLine2)
             .apply()
     }
 
@@ -71,6 +77,8 @@ object SettingsStore {
             }.getOrDefault(defaultAnnouncements)
         } ?: defaultAnnouncements
         val testDateTime = prefs.getLong(KEY_TEST_DATE_TIME, -1L).let { if (it == -1L) null else it }
-        return AppSettings(PresetCities[idx], system, announcements, testDateTime)
+        val titleLine1 = prefs.getString(KEY_TITLE_LINE1, null) ?: "בית הכנסת היכל עמרם"
+        val titleLine2 = prefs.getString(KEY_TITLE_LINE2, null) ?: "ואני ברב חסדך אבוא ביתך אשתחווה אל היכל קדשך ביראתך"
+        return AppSettings(PresetCities[idx], system, announcements, testDateTime, titleLine1, titleLine2)
     }
 }

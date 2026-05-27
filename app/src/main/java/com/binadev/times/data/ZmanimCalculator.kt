@@ -133,7 +133,11 @@ object ZmanimCalculator {
             while (shabbatCal.dayOfWeek != Calendar.SATURDAY) {
                 shabbatCal.forward(Calendar.DATE, 1)
             }
-            val parasha = formatter.formatParsha(shabbatCal)
+            val parasha = if (shabbatCal.isYomTovAssurBemelacha || shabbatCal.isCholHamoed) {
+                formatter.formatYomTov(shabbatCal)
+            } else {
+                formatter.formatParsha(shabbatCal)
+            }
 
             // Daf Yomi
             val daf = jewishCal.dafYomiBavli
@@ -259,7 +263,19 @@ object ZmanimCalculator {
             next.forward(Calendar.DATE, 1)
             val tz = TimeZone.getTimeZone("Asia/Jerusalem")
             val timeFmt = SimpleDateFormat("HH:mm", Locale.getDefault()).apply { timeZone = tz }
-            "מולד חודש ${formatter.formatMonth(next)}: ${timeFmt.format(next.moladAsDate)}"
+            val moladDate = next.moladAsDate
+            val moladCal = Calendar.getInstance(tz).apply { time = moladDate }
+            val dayName = when (moladCal.get(Calendar.DAY_OF_WEEK)) {
+                Calendar.SUNDAY    -> "ראשון"
+                Calendar.MONDAY    -> "שני"
+                Calendar.TUESDAY   -> "שלישי"
+                Calendar.WEDNESDAY -> "רביעי"
+                Calendar.THURSDAY  -> "חמישי"
+                Calendar.FRIDAY    -> "שישי"
+                Calendar.SATURDAY  -> "שבת"
+                else               -> ""
+            }
+            "מולד חודש ${formatter.formatMonth(next)}: יום $dayName ${timeFmt.format(moladDate)}"
         } catch (e: Exception) {
             ""
         }

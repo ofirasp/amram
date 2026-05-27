@@ -7,27 +7,33 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
+import com.binadev.times.R
 import com.binadev.times.data.*
 import com.binadev.times.ui.ContentArea
 import com.binadev.times.ui.PrayerTimesPanel
 import com.binadev.times.ui.SettingsScreen
 import com.binadev.times.ui.SidePanel
+import com.binadev.times.ui.theme.Black
 import com.binadev.times.ui.theme.Gold
 import com.binadev.times.ui.theme.NavyDark
 import com.binadev.times.ui.theme.TextSecondary
 import com.binadev.times.ui.theme.TimesTheme
+import com.binadev.times.ui.theme.White
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -163,44 +169,138 @@ fun SynagogueScreen(settings: AppSettings) {
         }
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(NavyDark)
-    ) {
-        // Left: Prayer times — 20%
-        Box(modifier = Modifier.weight(0.20f).fillMaxHeight()) {
-            PrayerTimesPanel(
-                weekdayPrayers = daily.weekdayPrayers,
-                shabbatPrayers = daily.shabbatPrayers,
-            )
-        }
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val h = maxHeight
+        val w = maxWidth
 
-        // Center: Clock + Hebrew date at top + rotating slides — 45%
-        Column(modifier = Modifier.weight(0.45f).fillMaxHeight()) {
+        // Background
+        Image(
+            painter = painterResource(id = R.drawable.master),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillBounds,
+        )
+
+        // ── Header box: top 30% of screen — center = 15% from top = inside ellipse
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(h * 0.30f),
+        ) {
+            // Synagogue title — top of header banner
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(NavyDark)
-                    .padding(vertical = 10.dp),
+                    .align(Alignment.TopCenter)
+                    .padding(top = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                if (settings.titleLine1.isNotEmpty()) {
+                    Text(
+                        text = settings.titleLine1,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Gold,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                if (settings.titleLine2.isNotEmpty()) {
+                    Text(
+                        text = settings.titleLine2,
+                        fontSize = 12.sp,
+                        color = White.copy(alpha = 0.85f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = w * 0.10f),
+                    )
+                }
+            }
+
+            // Date + time — center of this box hits the ellipse
+            Column(
+                modifier = Modifier.align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = currentTime,
-                    fontSize = 52.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Gold,
+                    text = daily.hebrewInfo.hebrewDate,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = White,
                     textAlign = TextAlign.Center,
+                    modifier = Modifier.offset(y = (-5).dp),
                 )
                 Text(
-                    text = daily.hebrewInfo.hebrewDate,
-                    fontSize = 14.sp,
-                    color = TextSecondary,
+                    text = currentTime,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Black,
                     textAlign = TextAlign.Center,
+                    modifier = Modifier.offset(y = 2.dp),
                 )
             }
 
-            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            // הדף היומי — left side of header
+            if (daily.hebrewInfo.dafYomi.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .offset(y = (-18).dp)
+                        .padding(start = w * 0.09f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(text = "הדף היומי", fontSize = 10.sp, color = White.copy(alpha = 0.7f))
+                    Text(
+                        text = daily.hebrewInfo.dafYomi,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = White,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+
+            // פרשת השבוע — right side of header
+            if (daily.hebrewInfo.parasha.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .offset(y = (-18).dp)
+                        .padding(end = w * 0.09f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(text = "פרשת השבוע", fontSize = 10.sp, color = White.copy(alpha = 0.7f))
+                    Text(
+                        text = daily.hebrewInfo.parasha,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = White,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        }
+
+        // ── Main content — within the wooden inner frame ──────────────────────
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    top = h * 0.25f,
+                    start = w * 0.06f,
+                    end = w * 0.06f,
+                    bottom = h * 0.12f,
+                ),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            // Left: זמני תפילות
+            Box(modifier = Modifier.weight(0.22f).fillMaxHeight()) {
+                PrayerTimesPanel(
+                    weekdayPrayers = daily.weekdayPrayers,
+                    shabbatPrayers = daily.shabbatPrayers,
+                    dafYomi = daily.hebrewInfo.dafYomi,
+                )
+            }
+
+            // Center: rotating slides
+            Box(modifier = Modifier.weight(0.56f).fillMaxHeight()) {
                 AnimatedContent(
                     targetState = slideIndex,
                     transitionSpec = {
@@ -216,15 +316,28 @@ fun SynagogueScreen(settings: AppSettings) {
                     )
                 }
             }
+
+            // Right: זמני היום
+            Box(modifier = Modifier.weight(0.22f).fillMaxHeight()) {
+                SidePanel(
+                    zmanim = daily.zmanim,
+                    hebrewInfo = daily.hebrewInfo,
+                    settings = settings,
+                )
+            }
         }
 
-        // Right: Zmanim + Hebrew calendar info — 35%
-        Box(modifier = Modifier.weight(0.35f).fillMaxHeight()) {
-            SidePanel(
-                zmanim = daily.zmanim,
-                hebrewInfo = daily.hebrewInfo,
-                settings = settings,
-            )
-        }
+        // Fixed memorial footer in the brown frame area
+        Text(
+            text = "פיתוח התכנה לע\"נ מרים בת יוכבד זינו",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = White.copy(alpha = 0.55f),
+            textAlign = TextAlign.Center,
+            
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = h * 0.02f),
+        )
     }
 }

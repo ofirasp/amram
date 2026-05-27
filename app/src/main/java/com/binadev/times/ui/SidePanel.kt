@@ -2,6 +2,8 @@ package com.binadev.times.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -28,19 +30,10 @@ fun SidePanel(
         Column(
             modifier = Modifier
                 .fillMaxHeight()
-                .background(NavySidebar)
+                .clip(RoundedCornerShape(8.dp))
+                .background(NavyDark.copy(alpha = 0.60f))
                 .padding(horizontal = 10.dp, vertical = 8.dp),
         ) {
-            // Parasha + Daf Yomi
-            if (hebrewInfo.parasha.isNotEmpty()) {
-                SideLabelValue("פרשת השבוע", hebrewInfo.parasha)
-            }
-            if (hebrewInfo.dafYomi.isNotEmpty()) {
-                SideLabelValue("הדף היומי", hebrewInfo.dafYomi)
-            }
-
-            SideDivider()
-
             // Zmanim
             SideSectionHeader("זמני היום")
             zmanim.forEach { SideTimeRow(it) }
@@ -62,7 +55,7 @@ fun SidePanel(
                 Text(
                     text = hebrewInfo.moladText,
                     fontSize = 9.5.sp,
-                    color = TextMuted,
+                    color = White.copy(alpha = 0.7f),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -74,13 +67,13 @@ fun SidePanel(
                     text = "ספירת העומר",
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Gold,
+                    color = White,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Text(
                     text = hebrewInfo.omerText,
                     fontSize = 9.5.sp,
-                    color = GoldLight,
+                    color = White.copy(alpha = 0.85f),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -91,7 +84,7 @@ fun SidePanel(
             Text(
                 text = "${settings.city.nameHebrew} · ${settings.prayerSystem.hebrewName}",
                 fontSize = 10.sp,
-                color = TextMuted,
+                color = White.copy(alpha = 0.6f),
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
             )
@@ -106,25 +99,11 @@ private fun SideSectionHeader(title: String) {
         text = title,
         fontSize = 12.sp,
         fontWeight = FontWeight.Bold,
-        color = Gold,
+        color = White,
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 3.dp),
     )
-}
-
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-private fun SideLabelValue(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 1.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(text = label, fontSize = 11.sp, color = TextSecondary)
-        Text(text = value, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-    }
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -137,8 +116,8 @@ private fun SideTimeRow(item: ZmanItem) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = item.label, fontSize = 11.sp, color = TextSecondary, textAlign = TextAlign.End)
-        Text(text = item.time, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = GoldLight)
+        Text(text = item.label, fontSize = 11.sp, color = White, textAlign = TextAlign.End)
+        Text(text = item.time, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = White)
     }
 }
 
@@ -148,11 +127,10 @@ private fun FlagChip(text: String) {
     Text(
         text = "• $text",
         fontSize = 11.sp,
-        color = GoldLight,
+        color = White.copy(alpha = 0.85f),
         modifier = Modifier.fillMaxWidth(),
     )
 }
-
 
 @Composable
 private fun SideDivider() {
@@ -161,7 +139,7 @@ private fun SideDivider() {
         modifier = Modifier
             .fillMaxWidth()
             .height(1.dp)
-            .background(NavyDivider)
+            .background(White.copy(alpha = 0.25f))
     )
     Spacer(modifier = Modifier.height(4.dp))
 }

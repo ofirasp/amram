@@ -2,6 +2,8 @@ package com.binadev.times.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -21,12 +23,14 @@ import com.binadev.times.ui.theme.*
 fun PrayerTimesPanel(
     weekdayPrayers: List<TefilaItem>,
     shabbatPrayers: List<TefilaItem>,
+    dafYomi: String = "",
 ) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Column(
             modifier = Modifier
                 .fillMaxHeight()
-                .background(NavySidebar)
+                .clip(RoundedCornerShape(8.dp))
+                .background(NavyDark.copy(alpha = 0.60f))
                 .padding(horizontal = 10.dp, vertical = 8.dp),
         ) {
             PrayerSectionHeader("זמני תפילות לחול")
@@ -47,7 +51,7 @@ private fun PrayerSectionHeader(title: String) {
         text = title,
         fontSize = 12.sp,
         fontWeight = FontWeight.Bold,
-        color = Gold,
+        color = White,
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 3.dp),
@@ -64,8 +68,8 @@ private fun PrayerRow(item: TefilaItem) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = item.label, fontSize = 11.sp, color = TextSecondary)
-        Text(text = item.time, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = GoldLight)
+        Text(text = item.label, fontSize = 11.sp, color = White)
+        Text(text = item.time, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = White)
     }
 }
 

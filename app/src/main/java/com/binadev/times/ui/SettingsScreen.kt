@@ -45,6 +45,8 @@ fun SettingsScreen(
 ) {
     var selectedCity    by remember { mutableStateOf(currentSettings.city) }
     var selectedSystem  by remember { mutableStateOf(currentSettings.prayerSystem) }
+    var titleLine1 by remember { mutableStateOf(currentSettings.titleLine1) }
+    var titleLine2 by remember { mutableStateOf(currentSettings.titleLine2) }
     val editableAnnouncements = remember {
         mutableStateListOf(*currentSettings.announcements.toTypedArray())
     }
@@ -165,12 +167,24 @@ fun SettingsScreen(
                         }
                     }
 
-                    // ── Announcements editing ────────────────────────────────
+                    // ── Title lines + Announcements editing ─────────────────
                     Column(
                         modifier = Modifier
                             .weight(2f)
                             .verticalScroll(rememberScrollState()),
                     ) {
+                        SettingsSectionHeader("כותרת כללית")
+                        AnnouncementTextField(
+                            value = titleLine1,
+                            onValueChange = { titleLine1 = it },
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        )
+                        AnnouncementTextField(
+                            value = titleLine2,
+                            onValueChange = { titleLine2 = it },
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                        )
+
                         SettingsSectionHeader("הודעות לציבור")
 
                         editableAnnouncements.forEachIndexed { index, text ->
@@ -273,6 +287,8 @@ fun SettingsScreen(
                                     prayerSystem = selectedSystem,
                                     announcements = editableAnnouncements.filter { it.isNotBlank() },
                                     testDateTime = testMs,
+                                    titleLine1 = titleLine1,
+                                    titleLine2 = titleLine2,
                                 ))
                             },
                         )

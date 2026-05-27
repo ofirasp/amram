@@ -2,6 +2,7 @@ package com.binadev.times.ui
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
@@ -18,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
+import com.binadev.times.R
 import com.binadev.times.data.ContentSlide
 import com.binadev.times.data.SlideContent
 import com.binadev.times.data.YahrtzeitEntry
@@ -30,24 +33,35 @@ fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(NavyPanel)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 32.dp, vertical = 20.dp)
+                    .padding(start = 32.dp, end = 32.dp, top = 16.dp, bottom = 36.dp)
             ) {
                 // Slide title
-                Text(
-                    text = slide.title,
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Gold,
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 12.dp),
-                    textAlign = TextAlign.Start
-                )
+                        .padding(bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = slide.title,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Black,
+                        textAlign = TextAlign.Start,
+                    )
+                    if (slide.content is SlideContent.Yahrzeits) {
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Image(
+                            painter = painterResource(R.drawable.ic_candle),
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp),
+                        )
+                    }
+                }
 
                 Box(
                     modifier = Modifier
@@ -56,7 +70,7 @@ fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int) {
                         .background(Gold.copy(alpha = 0.4f))
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // Slide-type-specific content
                 when (val content = slide.content) {
@@ -70,7 +84,7 @@ fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int) {
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 12.dp),
+                    .padding(bottom = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -133,9 +147,9 @@ private fun TorahContent(title: String, content: SlideContent.TorahLesson) {
         ) {
             Text(
                 text = content.body,
-                fontSize = 21.sp,
+                fontSize = 12.sp,
                 color = TextPrimary,
-                lineHeight = 36.sp,
+                lineHeight = 15.sp,
                 textAlign = TextAlign.Start,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -148,7 +162,7 @@ private fun TorahContent(title: String, content: SlideContent.TorahLesson) {
 private fun YahrtzeitContent(content: SlideContent.Yahrzeits) {
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         content.entries.chunked(2).forEach { rowEntries ->
             Row(
@@ -173,26 +187,26 @@ private fun YahrtzeitCard(entry: YahrtzeitEntry, modifier: Modifier = Modifier) 
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(NavyDark.copy(alpha = 0.6f))
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = entry.name,
-                fontSize = 20.sp,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 color = Gold,
                 textAlign = TextAlign.Center
             )
             Text(
                 text = "${entry.relationship} ${entry.motherName}",
-                fontSize = 14.sp,
+                fontSize = 12.sp,
                 color = TextSecondary,
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = entry.date,
-                fontSize = 14.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = GoldLight,
                 textAlign = TextAlign.Center

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="28dp"
+    android:height="48dp"
+    android:viewportWidth="28"
+    android:viewportHeight="48">
+
+    <!-- Flame outer (orange) -->
+    <path
+        android:fillColor="#FFA020"
+        android:pathData="M14,0 C14,0 8,5 8,10 C8,14 10.5,17 14,17 C17.5,17 20,14 20,10 C20,5 14,0 14,0Z"/>
+
+    <!-- Flame inner (yellow) -->
+    <path
+        android:fillColor="#FFE040"
+        android:pathData="M14,3 C14,3 11,7 11,10 C11,12.5 12.2,14 14,14 C15.8,14 17,12.5 17,10 C17,7 14,3 14,3Z"/>
+
+    <!-- Wick -->
+    <path
+        android:strokeColor="#444444"
+        android:strokeWidth="1.5"
+        android:pathData="M14,17 L14,20"/>
+
+    <!-- Candle body -->
+    <path
+        android:fillColor="#F8F0D8"
+        android:pathData="M9,20 L19,20 L19,44 L9,44 Z"/>
+
+    <!-- Candle drip -->
+    <path
+        android:fillColor="#EEE8CC"
+        android:pathData="M9,24 C9,24 7,26 7,28 C7,29 8,30 9,30 Z"/>
+
+    <!-- Candle base plate -->
+    <path
+        android:fillColor="#C8A820"
+        android:pathData="M6,44 L22,44 L22,48 L6,48 Z"/>
+
+</vector>
