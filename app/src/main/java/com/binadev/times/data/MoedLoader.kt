@@ -1,13 +1,18 @@
 package com.binadev.times.data
 
 import android.content.Context
+import com.kosherjava.zmanim.hebrewcalendar.JewishCalendar
 import com.kosherjava.zmanim.hebrewcalendar.JewishDate
+import java.util.Calendar
 import java.util.Date
 
 object MoedLoader {
 
-    fun load(context: Context, testDateTimeMs: Long? = null): List<ContentSlide> {
-        val today = if (testDateTimeMs != null) JewishDate(Date(testDateTimeMs)) else JewishDate()
+    fun load(context: Context, testDateTimeMs: Long? = null, tzaitMs: Long? = null): List<ContentSlide> {
+        val nowMs = testDateTimeMs ?: System.currentTimeMillis()
+        val jewishCal = JewishCalendar(Date(nowMs))
+        if (tzaitMs != null && nowMs > tzaitMs) jewishCal.forward(Calendar.DATE, 1)
+        val today: JewishDate = jewishCal
         val todayAbs = today.absDate
         val year = today.jewishYear
 

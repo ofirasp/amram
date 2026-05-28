@@ -16,6 +16,7 @@ data class YahrtzeitEntry(
 
 data class HebrewCalendarInfo(
     val hebrewDate: String = "",
+    val dayOfWeek: String = "",
     val parasha: String = "",
     val haftara: String = "",
     val dafYomi: String = "",

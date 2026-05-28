@@ -73,6 +73,7 @@ fun SidePanel(
                 Text(
                     text = hebrewInfo.omerText,
                     fontSize = 9.5.sp,
+                    lineHeight = 11.sp,
                     color = White.copy(alpha = 0.85f),
                     modifier = Modifier.fillMaxWidth(),
                 )

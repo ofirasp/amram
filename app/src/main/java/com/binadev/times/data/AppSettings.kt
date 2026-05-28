@@ -8,6 +8,8 @@ enum class PrayerSystem(val hebrewName: String) {
     ASHKENAZ("אשכנז"),
 }
 
+enum class PrayerTimeMode { MANUAL, HANETZ }
+
 data class CityLocation(
     val nameHebrew: String,
     val nameEnglish: String,
@@ -41,6 +43,15 @@ data class AppSettings(
     val titleLine1: String = "בית הכנסת היכל עמרם",
     val titleLine2: String = "ואני ברב חסדך אבוא ביתך אשתחווה אל היכל קדשך ביראתך",
     val showMoedSlides: Boolean = true,
+    val shacharitWeekdayMode: PrayerTimeMode = PrayerTimeMode.MANUAL,
+    val shacharitWeekdayTime: String = "5:45",
+    val shacharitWeekdayOffset: Int = 0,
+    val minchaWeekdayOffset: Int = -30,
+    val shacharitShabbatMode: PrayerTimeMode = PrayerTimeMode.MANUAL,
+    val shacharitShabbatTime: String = "7:30",
+    val shacharitShabbatOffset: Int = 0,
+    val minchaShabbatOffset: Int = -30,
+    val arvitShabbatOffset: Int = 0,
 )
 
 object SettingsStore {
@@ -51,7 +62,16 @@ object SettingsStore {
     private const val KEY_TEST_DATE_TIME = "test_date_time"
     private const val KEY_TITLE_LINE1 = "title_line1"
     private const val KEY_TITLE_LINE2 = "title_line2"
-    private const val KEY_SHOW_MOED = "show_moed"
+    private const val KEY_SHOW_MOED    = "show_moed"
+    private const val KEY_SHA_WD_MODE   = "sha_wd_mode"
+    private const val KEY_SHA_WD_TIME   = "sha_wd_time"
+    private const val KEY_SHA_WD_OFFSET = "sha_wd_offset"
+    private const val KEY_MIN_WD_OFFSET = "min_wd_offset"
+    private const val KEY_SHA_SH_MODE   = "sha_sh_mode"
+    private const val KEY_SHA_SH_TIME   = "sha_sh_time"
+    private const val KEY_SHA_SH_OFFSET = "sha_sh_offset"
+    private const val KEY_MIN_SH_OFFSET   = "min_sh_offset"
+    private const val KEY_ARVIT_SH_OFFSET = "arvit_sh_offset"
 
     fun save(context: Context, settings: AppSettings) {
         val idx = PresetCities.indexOfFirst { it.nameEnglish == settings.city.nameEnglish }.coerceAtLeast(0)
@@ -64,6 +84,15 @@ object SettingsStore {
             .putString(KEY_TITLE_LINE1, settings.titleLine1)
             .putString(KEY_TITLE_LINE2, settings.titleLine2)
             .putBoolean(KEY_SHOW_MOED, settings.showMoedSlides)
+            .putString(KEY_SHA_WD_MODE,   settings.shacharitWeekdayMode.name)
+            .putString(KEY_SHA_WD_TIME,   settings.shacharitWeekdayTime)
+            .putInt(KEY_SHA_WD_OFFSET,    settings.shacharitWeekdayOffset)
+            .putInt(KEY_MIN_WD_OFFSET,    settings.minchaWeekdayOffset)
+            .putString(KEY_SHA_SH_MODE,   settings.shacharitShabbatMode.name)
+            .putString(KEY_SHA_SH_TIME,   settings.shacharitShabbatTime)
+            .putInt(KEY_SHA_SH_OFFSET,    settings.shacharitShabbatOffset)
+            .putInt(KEY_MIN_SH_OFFSET,    settings.minchaShabbatOffset)
+            .putInt(KEY_ARVIT_SH_OFFSET,  settings.arvitShabbatOffset)
             .apply()
     }
 
@@ -83,6 +112,26 @@ object SettingsStore {
         val titleLine1 = prefs.getString(KEY_TITLE_LINE1, null) ?: "בית הכנסת היכל עמרם"
         val titleLine2 = prefs.getString(KEY_TITLE_LINE2, null) ?: "ואני ברב חסדך אבוא ביתך אשתחווה אל היכל קדשך ביראתך"
         val showMoedSlides = prefs.getBoolean(KEY_SHOW_MOED, true)
-        return AppSettings(PresetCities[idx], system, announcements, testDateTime, titleLine1, titleLine2, showMoedSlides)
+        fun loadMode(key: String) = runCatching {
+            PrayerTimeMode.valueOf(prefs.getString(key, "") ?: "")
+        }.getOrDefault(PrayerTimeMode.MANUAL)
+        return AppSettings(
+            city = PresetCities[idx],
+            prayerSystem = system,
+            announcements = announcements,
+            testDateTime = testDateTime,
+            titleLine1 = titleLine1,
+            titleLine2 = titleLine2,
+            showMoedSlides = showMoedSlides,
+            shacharitWeekdayMode   = loadMode(KEY_SHA_WD_MODE),
+            shacharitWeekdayTime   = prefs.getString(KEY_SHA_WD_TIME, null) ?: "5:45",
+            shacharitWeekdayOffset = prefs.getInt(KEY_SHA_WD_OFFSET, 0),
+            minchaWeekdayOffset    = prefs.getInt(KEY_MIN_WD_OFFSET, -30),
+            shacharitShabbatMode   = loadMode(KEY_SHA_SH_MODE),
+            shacharitShabbatTime   = prefs.getString(KEY_SHA_SH_TIME, null) ?: "7:30",
+            shacharitShabbatOffset = prefs.getInt(KEY_SHA_SH_OFFSET, 0),
+            minchaShabbatOffset    = prefs.getInt(KEY_MIN_SH_OFFSET, -30),
+            arvitShabbatOffset     = prefs.getInt(KEY_ARVIT_SH_OFFSET, 0),
+        )
     }
 }

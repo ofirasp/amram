@@ -12,6 +12,7 @@ data class DailyCalculations(
     val weekdayPrayers: List<TefilaItem> = emptyList(),
     val shabbatPrayers: List<TefilaItem> = emptyList(),
     val hebrewInfo: HebrewCalendarInfo = HebrewCalendarInfo(),
+    val tzaitMs: Long? = null,
 )
 
 object ZmanimCalculator {
@@ -34,11 +35,12 @@ object ZmanimCalculator {
             }
             cal.candleLightingOffset = if (settings.prayerSystem == PrayerSystem.MIZRACHI) 20.0 else 18.0
 
+            val tzaitMs = cal.sunset?.let { it.time + 18 * 60 * 1000 }
             val zmanim = buildZmanim(cal, tz, settings.prayerSystem)
-            val (weekday, shabbat) = buildPrayerTimes(cal, tz, settings.prayerSystem)
-            val hebrewInfo = getHebrewCalendarInfo(settings.prayerSystem, settings.testDateTime)
+            val (weekday, shabbat) = buildPrayerTimes(cal, tz, settings)
+            val hebrewInfo = getHebrewCalendarInfo(settings.prayerSystem, settings.testDateTime, tzaitMs)
 
-            DailyCalculations(zmanim, weekday, shabbat, hebrewInfo)
+            DailyCalculations(zmanim, weekday, shabbat, hebrewInfo, tzaitMs)
         } catch (e: Exception) {
             DailyCalculations()
         }
@@ -79,37 +81,33 @@ object ZmanimCalculator {
     private fun buildPrayerTimes(
         cal: ComplexZmanimCalendar,
         tz: TimeZone,
-        system: PrayerSystem,
+        settings: AppSettings,
     ): Pair<List<TefilaItem>, List<TefilaItem>> {
-        // מנחה לחול = שקיעה פחות 30 דקות
-        val minchaWeekday = cal.sunset?.let { Date(it.time - 30 * 60 * 1000) }
-
-        // ערבית לחול = צאת הכוכבים = 18 דקות אחרי שקיעה
-        val arvitWeekday = cal.sunset?.let { Date(it.time + 18 * 60 * 1000) }
+        val shacharitWeekday = when (settings.shacharitWeekdayMode) {
+            PrayerTimeMode.MANUAL -> settings.shacharitWeekdayTime
+            PrayerTimeMode.HANETZ -> fmt(cal.sunrise?.let { Date(it.time + settings.shacharitWeekdayOffset * 60_000L) }, tz)
+        }
+        val minchaWeekday = cal.sunset?.let { Date(it.time + settings.minchaWeekdayOffset * 60_000L) }
+        val arvitWeekday  = cal.sunset?.let { Date(it.time + 18 * 60_000L) }
 
         val weekday = listOf(
-            TefilaItem("שחרית", "5:45"),
-            TefilaItem("מנחה", fmt(minchaWeekday, tz)),
-            TefilaItem("ערבית", fmt(arvitWeekday, tz)),
+            TefilaItem("שחרית", shacharitWeekday),
+            TefilaItem("מנחה",  fmt(minchaWeekday, tz)),
+            TefilaItem("ערבית", fmt(arvitWeekday,  tz)),
         )
 
-        // מנחה וקבלת שבת = הדלקת נרות
-        val minchaKabbalat = cal.candleLighting
-
-        // מנחה שבת = הדלקת נרות פחות חצי שעה
-        val minchaShabbat = cal.candleLighting?.let { Date(it.time - 30 * 60 * 1000) }
-
-        // ערבית והבדלה = צאת השבת
-        val arvitHavdalah = when (system) {
-            PrayerSystem.MIZRACHI -> cal.tzaisGeonim8Point5Degrees
-            PrayerSystem.ASHKENAZ -> cal.tzais72
+        val shacharitShabbat = when (settings.shacharitShabbatMode) {
+            PrayerTimeMode.MANUAL -> settings.shacharitShabbatTime
+            PrayerTimeMode.HANETZ -> fmt(cal.sunrise?.let { Date(it.time + settings.shacharitShabbatOffset * 60_000L) }, tz)
         }
+        val minchaShabbat = cal.candleLighting?.let { Date(it.time + settings.minchaShabbatOffset * 60_000L) }
+        val arvitHavdalah = cal.sunset?.let { Date(it.time + (18 + settings.arvitShabbatOffset) * 60_000L) }
 
         val shabbat = listOf(
-            TefilaItem("מנחה וקבלת שבת", fmt(minchaKabbalat, tz)),
-            TefilaItem("שחרית", "7:30"),
-            TefilaItem("מנחה", fmt(minchaShabbat, tz)),
-            TefilaItem("ערבית והבדלה", fmt(arvitHavdalah, tz)),
+            TefilaItem("מנחה וקבלת שבת", fmt(cal.candleLighting, tz)),
+            TefilaItem("שחרית",          shacharitShabbat),
+            TefilaItem("מנחה",           fmt(minchaShabbat, tz)),
+            TefilaItem("ערבית והבדלה",   fmt(arvitHavdalah,  tz)),
         )
 
         return Pair(weekday, shabbat)
@@ -117,31 +115,56 @@ object ZmanimCalculator {
 
     // ── Hebrew calendar info ──────────────────────────────────────────────────
 
-    fun getHebrewCalendarInfo(system: PrayerSystem = PrayerSystem.MIZRACHI, testDateTimeMs: Long? = null): HebrewCalendarInfo {
+    fun getHebrewCalendarInfo(system: PrayerSystem = PrayerSystem.MIZRACHI, testDateTimeMs: Long? = null, tzaitMs: Long? = null): HebrewCalendarInfo {
         return try {
-            val jewishCal = if (testDateTimeMs != null) {
-                JewishCalendar(Date(testDateTimeMs))
-            } else {
-                JewishCalendar()
+            val nowMs = testDateTimeMs ?: System.currentTimeMillis()
+            val jewishCal = JewishCalendar(Date(nowMs))
+            // Hebrew day starts at nightfall — advance if current time is past today's Tzait
+            if (tzaitMs != null && nowMs > tzaitMs) {
+                jewishCal.forward(Calendar.DATE, 1)
             }
             val formatter = HebrewDateFormatter().apply { isHebrewFormat = true }
 
             val dateStr = formatter.format(jewishCal)
+            val dayOfWeek = when (jewishCal.dayOfWeek) {
+                Calendar.SUNDAY    -> "יום ראשון"
+                Calendar.MONDAY    -> "יום שני"
+                Calendar.TUESDAY   -> "יום שלישי"
+                Calendar.WEDNESDAY -> "יום רביעי"
+                Calendar.THURSDAY  -> "יום חמישי"
+                Calendar.FRIDAY    -> "יום שישי"
+                Calendar.SATURDAY  -> "שבת קודש"
+                else               -> ""
+            }
 
-            // Parasha: advance to next Shabbat if needed — Israel cycle
+            // Parasha: advance to next Shabbat (Israel cycle)
             val shabbatCal = jewishCal.clone() as JewishCalendar
             shabbatCal.inIsrael = true
             while (shabbatCal.dayOfWeek != Calendar.SATURDAY) {
                 shabbatCal.forward(Calendar.DATE, 1)
             }
-            val parasha = if (shabbatCal.isYomTovAssurBemelacha || shabbatCal.isCholHamoed) {
-                formatter.formatYomTov(shabbatCal)
-            } else {
-                formatter.formatParsha(shabbatCal)
+
+            // Show holiday name (no haftara) from today through the last day of any holiday this week
+            val holidayScan = jewishCal.clone() as JewishCalendar
+            holidayScan.inIsrael = true
+            var foundHoliday: JewishCalendar? = null
+            while (holidayScan.absDate <= shabbatCal.absDate) {
+                if (holidayScan.isYomTovAssurBemelacha || holidayScan.isCholHamoed) {
+                    foundHoliday = holidayScan.clone() as JewishCalendar
+                    break
+                }
+                holidayScan.forward(Calendar.DATE, 1)
             }
-            val haftara = if (!shabbatCal.isYomTovAssurBemelacha && !shabbatCal.isCholHamoed) {
-                haftaraForParsha(shabbatCal)
-            } else ""
+
+            val parasha: String
+            val haftara: String
+            if (foundHoliday != null) {
+                parasha = formatter.formatYomTov(foundHoliday)
+                haftara = ""
+            } else {
+                parasha = formatter.formatParsha(shabbatCal)
+                haftara = haftaraForParsha(shabbatCal)
+            }
 
             // Daf Yomi
             val daf = jewishCal.dafYomiBavli
@@ -166,6 +189,7 @@ object ZmanimCalculator {
 
             HebrewCalendarInfo(
                 hebrewDate = dateStr,
+                dayOfWeek = dayOfWeek,
                 parasha = parasha,
                 haftara = haftara,
                 dafYomi = dafStr,
@@ -237,14 +261,15 @@ object ZmanimCalculator {
         return false
     }
 
-    // יעלה ויבוא: ראש חודש + חול המועד פסח + חול המועד סוכות
-    // (On Rosh Hashana / Yom Kippur the whole Amidah is replaced — no separate reminder needed)
+    // יעלה ויבוא: ראש חודש + כל ימי פסח, סוכות ושמיני עצרת, שבועות
+    // (ראש השנה ויום כיפור — לא נאמר יעלה ויבוא בהם)
     private fun isYaaleVeyavDay(cal: JewishCalendar): Boolean {
         if (cal.isRoshChodesh) return true
         val month = cal.jewishMonth
         val day = cal.jewishDayOfMonth
-        if (month == JewishCalendar.NISSAN  && day in 16..20) return true  // חול המועד פסח (Israel)
-        if (month == JewishCalendar.TISHREI && day in 16..21) return true  // חול המועד סוכות
+        if (month == JewishCalendar.NISSAN  && day in 15..21) return true  // כל ימי פסח (ישראל)
+        if (month == JewishCalendar.TISHREI && day in 15..22) return true  // סוכות + שמיני עצרת/שמחת תורה
+        if (month == JewishCalendar.SIVAN   && day == 6)      return true  // שבועות (ישראל)
         return false
     }
 

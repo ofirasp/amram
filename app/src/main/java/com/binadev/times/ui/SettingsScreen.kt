@@ -54,6 +54,15 @@ fun SettingsScreen(
     val firstFocus = remember { FocusRequester() }
 
     var showMoedSlides by remember { mutableStateOf(currentSettings.showMoedSlides) }
+    var shacharitWeekdayMode   by remember { mutableStateOf(currentSettings.shacharitWeekdayMode) }
+    var shacharitWeekdayTime   by remember { mutableStateOf(currentSettings.shacharitWeekdayTime) }
+    var shacharitWeekdayOffset by remember { mutableIntStateOf(currentSettings.shacharitWeekdayOffset) }
+    var minchaWeekdayOffset    by remember { mutableIntStateOf(currentSettings.minchaWeekdayOffset) }
+    var shacharitShabbatMode   by remember { mutableStateOf(currentSettings.shacharitShabbatMode) }
+    var shacharitShabbatTime   by remember { mutableStateOf(currentSettings.shacharitShabbatTime) }
+    var shacharitShabbatOffset by remember { mutableIntStateOf(currentSettings.shacharitShabbatOffset) }
+    var minchaShabbatOffset    by remember { mutableIntStateOf(currentSettings.minchaShabbatOffset) }
+    var arvitShabbatOffset     by remember { mutableIntStateOf(currentSettings.arvitShabbatOffset) }
     var testDateEnabled by remember { mutableStateOf(currentSettings.testDateTime != null) }
     val initCal = remember {
         Calendar.getInstance().apply {
@@ -168,6 +177,56 @@ fun SettingsScreen(
                             }
                         }
 
+                    }
+
+                    // ── Prayer times ─────────────────────────────────────────
+                    Column(
+                        modifier = Modifier
+                            .weight(1.5f)
+                            .verticalScroll(rememberScrollState()),
+                    ) {
+                        SettingsSectionHeader("שעות תפילה")
+
+                        PrayerTimeSetting(
+                            label          = "שחרית חול",
+                            mode           = shacharitWeekdayMode,
+                            manualTime     = shacharitWeekdayTime,
+                            offset         = shacharitWeekdayOffset,
+                            onModeChange   = { shacharitWeekdayMode = it },
+                            onTimeChange   = { shacharitWeekdayTime = it },
+                            onOffsetChange = { shacharitWeekdayOffset = it },
+                        )
+                        Spacer(Modifier.height(14.dp))
+                        OffsetTimeSetting(
+                            label          = "מנחה חול",
+                            baseLabel      = "שקיעה",
+                            offset         = minchaWeekdayOffset,
+                            onOffsetChange = { minchaWeekdayOffset = it },
+                        )
+                        Spacer(Modifier.height(14.dp))
+                        PrayerTimeSetting(
+                            label          = "שחרית שבת",
+                            mode           = shacharitShabbatMode,
+                            manualTime     = shacharitShabbatTime,
+                            offset         = shacharitShabbatOffset,
+                            onModeChange   = { shacharitShabbatMode = it },
+                            onTimeChange   = { shacharitShabbatTime = it },
+                            onOffsetChange = { shacharitShabbatOffset = it },
+                        )
+                        Spacer(Modifier.height(14.dp))
+                        OffsetTimeSetting(
+                            label          = "מנחה שבת",
+                            baseLabel      = "הדל\"נ",
+                            offset         = minchaShabbatOffset,
+                            onOffsetChange = { minchaShabbatOffset = it },
+                        )
+                        Spacer(Modifier.height(14.dp))
+                        OffsetTimeSetting(
+                            label          = "ערבית והבדלה",
+                            baseLabel      = "צאת",
+                            offset         = arvitShabbatOffset,
+                            onOffsetChange = { arvitShabbatOffset = it },
+                        )
                     }
 
                     // ── Title lines + Announcements editing ─────────────────
@@ -317,6 +376,15 @@ fun SettingsScreen(
                                     titleLine1 = titleLine1,
                                     titleLine2 = titleLine2,
                                     showMoedSlides = showMoedSlides,
+                                    shacharitWeekdayMode   = shacharitWeekdayMode,
+                                    shacharitWeekdayTime   = shacharitWeekdayTime,
+                                    shacharitWeekdayOffset = shacharitWeekdayOffset,
+                                    minchaWeekdayOffset    = minchaWeekdayOffset,
+                                    shacharitShabbatMode   = shacharitShabbatMode,
+                                    shacharitShabbatTime   = shacharitShabbatTime,
+                                    shacharitShabbatOffset = shacharitShabbatOffset,
+                                    minchaShabbatOffset    = minchaShabbatOffset,
+                                    arvitShabbatOffset     = arvitShabbatOffset,
                                 ))
                             },
                         )
@@ -701,4 +769,163 @@ private fun SettingsCheckbox(
 private fun systemDescription(system: PrayerSystem) = when (system) {
     PrayerSystem.MIZRACHI -> "סוזק\"ש מג\"א · הדלקת נרות 20 דק'"
     PrayerSystem.ASHKENAZ -> "סוזק\"ש גר\"א · הדלקת נרות 18 דק'"
+}
+
+// ── Prayer time settings composables ──────────────────────────────────────────
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun PrayerTimeSetting(
+    label: String,
+    mode: PrayerTimeMode,
+    manualTime: String,
+    offset: Int,
+    onModeChange: (PrayerTimeMode) -> Unit,
+    onTimeChange: (String) -> Unit,
+    onOffsetChange: (Int) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Gold,
+            modifier = Modifier.padding(bottom = 6.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SmallModeButton("ידני", mode == PrayerTimeMode.MANUAL) { onModeChange(PrayerTimeMode.MANUAL) }
+            SmallModeButton("הנץ",  mode == PrayerTimeMode.HANETZ) { onModeChange(PrayerTimeMode.HANETZ) }
+        }
+        Spacer(Modifier.height(6.dp))
+        when (mode) {
+            PrayerTimeMode.MANUAL -> TimeTextField(value = manualTime, onValueChange = onTimeChange)
+            PrayerTimeMode.HANETZ -> Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text("הנץ", fontSize = 11.sp, color = TextMuted)
+                PrayerOffsetStepper(value = offset, min = -60, max = 120, onValueChange = onOffsetChange)
+                Text("דק'", fontSize = 11.sp, color = TextMuted)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun OffsetTimeSetting(
+    label: String,
+    baseLabel: String,
+    offset: Int,
+    onOffsetChange: (Int) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Gold,
+            modifier = Modifier.padding(bottom = 6.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(baseLabel, fontSize = 11.sp, color = TextMuted)
+            PrayerOffsetStepper(value = offset, min = -120, max = 120, onValueChange = onOffsetChange)
+            Text("דק'", fontSize = 11.sp, color = TextMuted)
+        }
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun SmallModeButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(
+                when {
+                    isSelected && isFocused -> GoldLight
+                    isSelected              -> Gold
+                    isFocused               -> NavyDivider
+                    else                    -> NavyPanel
+                }
+            )
+            .border(1.dp, if (isFocused || isSelected) Gold else NavyDivider, RoundedCornerShape(6.dp))
+            .focusable(interactionSource = interactionSource)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            color = if (isSelected) NavyDark else TextPrimary,
+        )
+    }
+}
+
+@Composable
+private fun TimeTextField(value: String, onValueChange: (String) -> Unit) {
+    var isFocused by remember { mutableStateOf(false) }
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(if (isFocused) NavyDivider else NavyPanel)
+            .border(
+                width = if (isFocused) 2.dp else 1.dp,
+                color = if (isFocused) Gold else NavyDivider,
+                shape = RoundedCornerShape(8.dp),
+            )
+            .onFocusChanged { isFocused = it.isFocused }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        textStyle = TextStyle(
+            color = TextPrimary,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            textDirection = TextDirection.Ltr,
+        ),
+        cursorBrush = SolidColor(Gold),
+        singleLine = true,
+    )
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun PrayerOffsetStepper(value: Int, min: Int, max: Int, onValueChange: (Int) -> Unit) {
+    val interactionDec = remember { MutableInteractionSource() }
+    val interactionInc = remember { MutableInteractionSource() }
+    val isFocusedDec by interactionDec.collectIsFocusedAsState()
+    val isFocusedInc by interactionInc.collectIsFocusedAsState()
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(if (isFocusedDec) NavyDivider else NavyPanel)
+                .border(1.dp, if (isFocusedDec) Gold else NavyDivider, RoundedCornerShape(4.dp))
+                .focusable(interactionSource = interactionDec)
+                .clickable { onValueChange((value - 1).coerceAtLeast(min)) },
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("◄", fontSize = 11.sp, color = if (isFocusedDec) Gold else TextPrimary)
+        }
+        Text(
+            text = if (value > 0) "+$value" else "$value",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = Gold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(min = 46.dp),
+        )
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(if (isFocusedInc) NavyDivider else NavyPanel)
+                .border(1.dp, if (isFocusedInc) Gold else NavyDivider, RoundedCornerShape(4.dp))
+                .focusable(interactionSource = interactionInc)
+                .clickable { onValueChange((value + 1).coerceAtMost(max)) },
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("►", fontSize = 11.sp, color = if (isFocusedInc) Gold else TextPrimary)
+        }
+    }
 }

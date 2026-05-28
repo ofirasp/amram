@@ -1,7 +1,11 @@
 package com.binadev.times
 
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -11,6 +15,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -49,6 +54,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val initialSettings = SettingsStore.load(this)
         setContent {
             TimesTheme {
@@ -139,19 +145,37 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
         SynagogueData.buildSlides(settings.announcements, yahrzeits, moedSlides)
     }
 
-    // Recalculate zmanim + load yahrzeits + load moed slides when settings change or memo editor saves, refresh every hour
-    LaunchedEffect(settings, yahrtzeitReloadKey) {
-        while (true) {
-            daily = withContext(Dispatchers.Default) {
-                ZmanimCalculator.calculateAll(settings)
+    // ACTION_TIME_TICK fires every minute — use it as the reliable clock tick
+    var timeTick by remember { mutableIntStateOf(0) }
+    DisposableEffect(context) {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(ctx: android.content.Context, intent: Intent) {
+                timeTick++
             }
-            yahrzeits = withContext(Dispatchers.IO) {
-                YahrtzeitLoader.load(context, settings.testDateTime)
-            }
-            moedSlides = withContext(Dispatchers.IO) {
-                if (settings.showMoedSlides) MoedLoader.load(context, settings.testDateTime) else emptyList()
-            }
-            delay(60 * 60 * 1_000L)
+        }
+        val filter = IntentFilter(Intent.ACTION_TIME_TICK).apply {
+            addAction(Intent.ACTION_TIME_CHANGED)
+            addAction(Intent.ACTION_DATE_CHANGED)
+        }
+        context.registerReceiver(receiver, filter)
+        onDispose { context.unregisterReceiver(receiver) }
+    }
+
+    // Recalculate zmanim + Hebrew date on every minute tick
+    LaunchedEffect(settings, timeTick) {
+        daily = withContext(Dispatchers.Default) {
+            ZmanimCalculator.calculateAll(settings)
+        }
+    }
+
+    // Reload yahrzeits + moed slides every minute tick — guarantees update when day changes at Tzait
+    LaunchedEffect(settings, yahrtzeitReloadKey, timeTick) {
+        val tzaitMs = daily.tzaitMs
+        yahrzeits = withContext(Dispatchers.IO) {
+            YahrtzeitLoader.load(context, settings.testDateTime, tzaitMs)
+        }
+        moedSlides = withContext(Dispatchers.IO) {
+            if (settings.showMoedSlides) MoedLoader.load(context, settings.testDateTime, tzaitMs) else emptyList()
         }
     }
 
@@ -228,7 +252,10 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = daily.hebrewInfo.hebrewDate,
+                    text = listOfNotNull(
+                        daily.hebrewInfo.dayOfWeek.takeIf { it.isNotEmpty() },
+                        daily.hebrewInfo.hebrewDate.takeIf { it.isNotEmpty() },
+                    ).joinToString(" | "),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = White,

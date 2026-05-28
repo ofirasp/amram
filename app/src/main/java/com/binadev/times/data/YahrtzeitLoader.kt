@@ -2,12 +2,15 @@ package com.binadev.times.data
 
 import android.content.Context
 import com.kosherjava.zmanim.hebrewcalendar.JewishCalendar
+import java.util.Calendar
 import java.util.Date
 
 object YahrtzeitLoader {
 
-    fun load(context: Context, testDateTimeMs: Long? = null): List<YahrtzeitEntry> {
-        val cal = if (testDateTimeMs != null) JewishCalendar(Date(testDateTimeMs)) else JewishCalendar()
+    fun load(context: Context, testDateTimeMs: Long? = null, tzaitMs: Long? = null): List<YahrtzeitEntry> {
+        val nowMs = testDateTimeMs ?: System.currentTimeMillis()
+        val cal = JewishCalendar(Date(nowMs))
+        if (tzaitMs != null && nowMs > tzaitMs) cal.forward(Calendar.DATE, 1)
         val currentMonthFile = monthFileName(cal.jewishMonth) ?: return emptyList()
         val currentMonth = MemoRepository.load(context, currentMonthFile)
         val yearlyFromOthers = MemoRepository.allMonths
