@@ -124,35 +124,38 @@ fun SettingsScreen(
                     horizontalArrangement = Arrangement.spacedBy(32.dp),
                 ) {
 
-                    // ── City selection ──────────────────────────────────────
-                    Column(modifier = Modifier.weight(1f)) {
-                        SettingsSectionHeader("בחר עיר")
-                        PresetCities.forEachIndexed { index, city ->
-                            SettingsOptionButton(
-                                text = city.nameHebrew,
-                                subtitle = city.nameEnglish,
-                                isSelected = city.nameEnglish == selectedCity.nameEnglish,
-                                modifier = if (index == 0) Modifier.focusRequester(firstFocus) else Modifier,
-                                onClick = { selectedCity = city },
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                        }
-                    }
-
-                    // ── Prayer system ────────────────────────────────────────
-                    Column(modifier = Modifier.weight(1f)) {
+                    // ── Prayer system + City (merged, scrollable) ───────────
+                    Column(
+                        modifier = Modifier
+                            .weight(1.3f)
+                            .verticalScroll(rememberScrollState()),
+                    ) {
                         SettingsSectionHeader("בחר מנהג")
                         PrayerSystem.entries.forEach { system ->
                             SettingsOptionButton(
                                 text = system.hebrewName,
                                 subtitle = systemDescription(system),
                                 isSelected = system == selectedSystem,
+                                modifier = if (system == PrayerSystem.entries.first()) Modifier.focusRequester(firstFocus) else Modifier,
                                 onClick = { selectedSystem = system },
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                         }
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        SettingsSectionHeader("בחר עיר")
+                        PresetCities.forEachIndexed { _, city ->
+                            SettingsOptionButton(
+                                text = city.nameHebrew,
+                                subtitle = city.nameEnglish,
+                                isSelected = city.nameEnglish == selectedCity.nameEnglish,
+                                onClick = { selectedCity = city },
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         Box(
                             modifier = Modifier
@@ -177,7 +180,6 @@ fun SettingsScreen(
                                 )
                             }
                         }
-
                     }
 
                     // ── Prayer times ─────────────────────────────────────────
