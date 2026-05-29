@@ -215,21 +215,15 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
         }
     }
 
-    // Night dimming at configurable hours (honours test time when active)
-    val activity = LocalContext.current as? android.app.Activity
+    // Night dimming overlay — more reliable than window brightness on Android TV
+    var isNightDim by remember { mutableStateOf(false) }
     LaunchedEffect(timeTick, settings.nightDimStart, settings.nightDimEnd, settings.testDateTime) {
         val hour = Calendar.getInstance().apply {
             settings.testDateTime?.let { timeInMillis = it }
         }.get(Calendar.HOUR_OF_DAY)
         val s = settings.nightDimStart
         val e = settings.nightDimEnd
-        val isNight = if (s > e) hour >= s || hour < e else hour in s until e
-        activity?.window?.let { win ->
-            val attrs = win.attributes
-            attrs.screenBrightness =
-                if (isNight) 0.3f else WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
-            win.attributes = attrs
-        }
+        isNightDim = if (s > e) hour >= s || hour < e else hour in s until e
     }
 
     Box(modifier = Modifier.fillMaxSize().offset { shiftOffsets[shiftIndex] }) {
@@ -424,6 +418,13 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = h * 0.02f),
+        )
+    }
+    if (isNightDim) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Black.copy(alpha = 0.7f))
         )
     }
     } // end pixel-shift Box
