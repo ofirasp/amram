@@ -427,10 +427,18 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
             fontWeight = FontWeight.Bold,
             color = White.copy(alpha = 0.55f),
             textAlign = TextAlign.Center,
-            
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = h * 0.02f),
+        )
+        // City + nusach — bottom-left (BottomEnd in RTL layout)
+        Text(
+            text = "${settings.city.nameHebrew} · ${settings.prayerSystem.hebrewName}",
+            fontSize = 12.sp,
+            color = White.copy(alpha = 0.6f),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = w * 0.06f, bottom = h * 0.02f),
         )
     }
     if (isNightDim) {

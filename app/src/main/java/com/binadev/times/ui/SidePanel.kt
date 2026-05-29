@@ -78,16 +78,6 @@ fun SidePanel(
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
-
-            // City + minhag indicator
-            Text(
-                text = "${settings.city.nameHebrew} · ${settings.prayerSystem.hebrewName}",
-                fontSize = 12.sp,
-                color = White.copy(alpha = 0.6f),
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-            )
         }
     }
 }
