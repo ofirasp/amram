@@ -33,7 +33,7 @@ import com.binadev.times.ui.theme.*
 
 @OptIn(ExperimentalTvMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
-fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int) {
+fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int, omerText: String = "") {
     val context = LocalContext.current
     val torahImage = remember(slide) {
         val asset = (slide.content as? SlideContent.TorahLesson)?.imageAsset
@@ -54,6 +54,21 @@ fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int) {
                     .fillMaxSize()
                     .padding(start = 32.dp, end = 32.dp, top = 16.dp, bottom = 36.dp)
             ) {
+                // Omer count — above slide title
+                if (omerText.isNotEmpty()) {
+                    Text(
+                        text = omerText,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Gold,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 16.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 6.dp),
+                    )
+                }
+
                 // Slide title
                 Row(
                     modifier = Modifier

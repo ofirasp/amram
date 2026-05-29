@@ -60,24 +60,6 @@ fun SidePanel(
             if (hebrewInfo.isTachanunOmitted) FlagChip("א\"א תחנון")
             if (hebrewInfo.isTzidkatchaOmitted) FlagChip("א\"א צדקתך")
 
-            // Omer
-            if (hebrewInfo.omerText.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "ספירת העומר",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = White,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Text(
-                    text = hebrewInfo.omerText,
-                    fontSize = 11.5.sp,
-                    lineHeight = 11.sp,
-                    color = White.copy(alpha = 0.85f),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
 
         }
     }

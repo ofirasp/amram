@@ -406,6 +406,7 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
                         slide = slides[idx],
                         slideIndex = idx,
                         totalSlides = slides.size,
+                        omerText = daily.hebrewInfo.omerText,
                     )
                 }
             }
