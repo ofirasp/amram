@@ -30,6 +30,7 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
 import com.binadev.times.R
 import com.binadev.times.data.*
+import com.kosherjava.zmanim.hebrewcalendar.JewishCalendar
 import com.binadev.times.ui.ContentArea
 import com.binadev.times.ui.MemoEditorScreen
 import com.binadev.times.ui.PrayerTimesPanel
@@ -217,13 +218,25 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
 
     // Night dimming overlay — more reliable than window brightness on Android TV
     var isNightDim by remember { mutableStateOf(false) }
-    LaunchedEffect(timeTick, settings.nightDimStart, settings.nightDimEnd, settings.testDateTime) {
-        val hour = Calendar.getInstance().apply {
-            settings.testDateTime?.let { timeInMillis = it }
-        }.get(Calendar.HOUR_OF_DAY)
+    LaunchedEffect(timeTick, settings.nightDimStart, settings.nightDimEnd, settings.testDateTime, daily.tzaitMs) {
+        val nowMs = settings.testDateTime ?: System.currentTimeMillis()
+        val hour = Calendar.getInstance().apply { timeInMillis = nowMs }.get(Calendar.HOUR_OF_DAY)
         val s = settings.nightDimStart
         val e = settings.nightDimEnd
-        isNightDim = if (s > e) hour >= s || hour < e else hour in s until e
+        val isNightHour = if (s > e) hour >= s || hour < e else hour in s until e
+
+        // No dimming on Shavuot night or Hoshana Raba night
+        val tzaitMs = daily.tzaitMs
+        val israelTz = TimeZone.getTimeZone("Asia/Jerusalem")
+        val jewishCal = JewishCalendar(Calendar.getInstance(israelTz).apply { timeInMillis = nowMs }).also {
+            if (tzaitMs != null && nowMs > tzaitMs) it.forward(Calendar.DATE, 1)
+            it.inIsrael = true
+        }
+        val isAllNightHoliday =
+            (jewishCal.jewishMonth == JewishCalendar.SIVAN   && jewishCal.jewishDayOfMonth == 6)  ||
+            (jewishCal.jewishMonth == JewishCalendar.TISHREI && jewishCal.jewishDayOfMonth == 21)
+
+        isNightDim = isNightHour && !isAllNightHoliday
     }
 
     Box(modifier = Modifier.fillMaxSize().offset { shiftOffsets[shiftIndex] }) {
