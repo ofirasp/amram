@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
@@ -201,6 +202,33 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
         }
     }
 
+    // Pixel shift — cycles 9 positions every 30s to distribute pixel wear
+    val shiftOffsets = remember {
+        listOf(IntOffset(0,0), IntOffset(1,0), IntOffset(1,1), IntOffset(0,1),
+               IntOffset(-1,1), IntOffset(-1,0), IntOffset(-1,-1), IntOffset(0,-1), IntOffset(1,-1))
+    }
+    var shiftIndex by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(30_000)
+            shiftIndex = (shiftIndex + 1) % shiftOffsets.size
+        }
+    }
+
+    // Night dimming 22:00–4:00 at 30% brightness
+    val activity = LocalContext.current as? android.app.Activity
+    LaunchedEffect(timeTick) {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val isNight = hour >= 22 || hour < 4
+        activity?.window?.let { win ->
+            val attrs = win.attributes
+            attrs.screenBrightness =
+                if (isNight) 0.3f else WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+            win.attributes = attrs
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize().offset { shiftOffsets[shiftIndex] }) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val h = maxHeight
         val w = maxWidth
@@ -394,4 +422,5 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
                 .padding(bottom = h * 0.02f),
         )
     }
+    } // end pixel-shift Box
 }
