@@ -215,10 +215,12 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
         }
     }
 
-    // Night dimming at configurable hours
+    // Night dimming at configurable hours (honours test time when active)
     val activity = LocalContext.current as? android.app.Activity
-    LaunchedEffect(timeTick, settings.nightDimStart, settings.nightDimEnd) {
-        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    LaunchedEffect(timeTick, settings.nightDimStart, settings.nightDimEnd, settings.testDateTime) {
+        val hour = Calendar.getInstance().apply {
+            settings.testDateTime?.let { timeInMillis = it }
+        }.get(Calendar.HOUR_OF_DAY)
         val s = settings.nightDimStart
         val e = settings.nightDimEnd
         val isNight = if (s > e) hour >= s || hour < e else hour in s until e
