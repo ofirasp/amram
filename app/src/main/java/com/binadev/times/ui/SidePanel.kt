@@ -52,6 +52,7 @@ fun SidePanel(
                 Text(
                     text = hebrewInfo.moladText,
                     fontSize = 11.5.sp,
+                    lineHeight = 13.sp,
                     color = White.copy(alpha = 0.7f),
                     modifier = Modifier.fillMaxWidth(),
                 )
