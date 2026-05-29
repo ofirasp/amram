@@ -24,6 +24,10 @@ fun PrayerTimesPanel(
     weekdayPrayers: List<TefilaItem>,
     shabbatPrayers: List<TefilaItem>,
     dafYomi: String = "",
+    fastName: String = "",
+    fastStart: String = "",
+    fastEnd: String = "",
+    holidayLabel: String = "",
 ) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Column(
@@ -40,6 +44,16 @@ fun PrayerTimesPanel(
 
             PrayerSectionHeader("זמני תפילות לשבת")
             shabbatPrayers.forEach { PrayerRow(it) }
+
+            if (fastName.isNotEmpty()) {
+                PrayerDivider()
+                PrayerSectionHeader("צום $fastName")
+                if (fastStart.isNotEmpty()) PrayerRow(TefilaItem("כניסת הצום", fastStart))
+                if (fastEnd.isNotEmpty())   PrayerRow(TefilaItem("יציאת הצום", fastEnd))
+            } else if (holidayLabel.isNotEmpty()) {
+                PrayerDivider()
+                PrayerSectionHeader(holidayLabel)
+            }
         }
     }
 }
@@ -49,7 +63,7 @@ fun PrayerTimesPanel(
 private fun PrayerSectionHeader(title: String) {
     Text(
         text = title,
-        fontSize = 12.sp,
+        fontSize = 14.sp,
         fontWeight = FontWeight.Bold,
         color = Gold,
         modifier = Modifier
@@ -68,8 +82,8 @@ private fun PrayerRow(item: TefilaItem) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = item.label, fontSize = 11.sp, color = White)
-        Text(text = item.time, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = White)
+        Text(text = item.label, fontSize = 13.sp, color = White)
+        Text(text = item.time, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = White)
     }
 }
 

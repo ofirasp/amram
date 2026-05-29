@@ -50,6 +50,7 @@ data class AppSettings(
     val shacharitShabbatMode: PrayerTimeMode = PrayerTimeMode.MANUAL,
     val shacharitShabbatTime: String = "7:30",
     val shacharitShabbatOffset: Int = 0,
+    val kabbalatShabbatOffset: Int = 0,
     val minchaShabbatOffset: Int = -30,
     val arvitShabbatOffset: Int = 0,
 )
@@ -70,6 +71,7 @@ object SettingsStore {
     private const val KEY_SHA_SH_MODE   = "sha_sh_mode"
     private const val KEY_SHA_SH_TIME   = "sha_sh_time"
     private const val KEY_SHA_SH_OFFSET = "sha_sh_offset"
+    private const val KEY_KAB_SH_OFFSET    = "kab_sh_offset"
     private const val KEY_MIN_SH_OFFSET   = "min_sh_offset"
     private const val KEY_ARVIT_SH_OFFSET = "arvit_sh_offset"
 
@@ -91,6 +93,7 @@ object SettingsStore {
             .putString(KEY_SHA_SH_MODE,   settings.shacharitShabbatMode.name)
             .putString(KEY_SHA_SH_TIME,   settings.shacharitShabbatTime)
             .putInt(KEY_SHA_SH_OFFSET,    settings.shacharitShabbatOffset)
+            .putInt(KEY_KAB_SH_OFFSET,    settings.kabbalatShabbatOffset)
             .putInt(KEY_MIN_SH_OFFSET,    settings.minchaShabbatOffset)
             .putInt(KEY_ARVIT_SH_OFFSET,  settings.arvitShabbatOffset)
             .apply()
@@ -130,6 +133,7 @@ object SettingsStore {
             shacharitShabbatMode   = loadMode(KEY_SHA_SH_MODE),
             shacharitShabbatTime   = prefs.getString(KEY_SHA_SH_TIME, null) ?: "7:30",
             shacharitShabbatOffset = prefs.getInt(KEY_SHA_SH_OFFSET, 0),
+            kabbalatShabbatOffset  = prefs.getInt(KEY_KAB_SH_OFFSET, 0),
             minchaShabbatOffset    = prefs.getInt(KEY_MIN_SH_OFFSET, -30),
             arvitShabbatOffset     = prefs.getInt(KEY_ARVIT_SH_OFFSET, 0),
         )

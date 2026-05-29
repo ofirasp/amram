@@ -346,6 +346,10 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
                     weekdayPrayers = daily.weekdayPrayers,
                     shabbatPrayers = daily.shabbatPrayers,
                     dafYomi = daily.hebrewInfo.dafYomi,
+                    fastName = daily.hebrewInfo.fastName,
+                    fastStart = daily.hebrewInfo.fastStart,
+                    fastEnd = daily.hebrewInfo.fastEnd,
+                    holidayLabel = daily.hebrewInfo.holidayLabel,
                 )
             }
 

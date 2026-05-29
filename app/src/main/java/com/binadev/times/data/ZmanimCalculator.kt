@@ -33,12 +33,32 @@ object ZmanimCalculator {
             settings.testDateTime?.let { testMs ->
                 cal.calendar = Calendar.getInstance(tz).apply { timeInMillis = testMs }
             }
-            cal.candleLightingOffset = if (settings.prayerSystem == PrayerSystem.MIZRACHI) 20.0 else 18.0
+            // candleLightingOffset not used — we compute zmaniyot minutes manually
 
-            val tzaitMs = cal.sunset?.let { it.time + 18 * 60 * 1000 }
-            val zmanim = buildZmanim(cal, tz, settings.prayerSystem)
-            val (weekday, shabbat) = buildPrayerTimes(cal, tz, settings)
-            val hebrewInfo = getHebrewCalendarInfo(settings.prayerSystem, settings.testDateTime, tzaitMs)
+            val erevCal    = calAdvancedBy(cal, tz, daysToNextErev(cal))
+            val shabbatCal = calAdvancedBy(cal, tz, daysToNextShabbatOrYomTov(cal))
+            val tzaitMs = tzaitZmaniyot(cal)?.time
+            val zmanim = buildZmanim(cal, erevCal, shabbatCal, tz, settings.prayerSystem)
+            val (weekday, shabbat) = buildPrayerTimes(cal, erevCal, shabbatCal, tz, settings)
+            val baseHebrewInfo = getHebrewCalendarInfo(settings.prayerSystem, settings.testDateTime, tzaitMs)
+            val nowMs = settings.testDateTime ?: System.currentTimeMillis()
+            val israelTz = TimeZone.getTimeZone("Asia/Jerusalem")
+            val jewishCalForFast = JewishCalendar(Calendar.getInstance(israelTz).apply { timeInMillis = nowMs }).also {
+                if (tzaitMs != null && nowMs > tzaitMs) it.forward(Calendar.DATE, 1)
+                it.inIsrael = true
+            }
+            val fastData = findUpcomingFast(jewishCalForFast, cal, tz, settings.prayerSystem)
+            // When a special Shabbat label exists and the fast is still in the future,
+            // suppress the advance fast notice so the special Shabbat shows instead.
+            // On the fast day itself (daysAhead == 0) the fast always wins.
+            val suppressFast = fastData != null
+                && fastData.daysAhead > 0
+                && baseHebrewInfo.holidayLabel.isNotEmpty()
+            val hebrewInfo = baseHebrewInfo.copy(
+                fastName  = if (suppressFast) "" else fastData?.name  ?: "",
+                fastStart = if (suppressFast) "" else fastData?.start ?: "",
+                fastEnd   = if (suppressFast) "" else fastData?.end   ?: "",
+            )
 
             DailyCalculations(zmanim, weekday, shabbat, hebrewInfo, tzaitMs)
         } catch (e: Exception) {
@@ -48,19 +68,25 @@ object ZmanimCalculator {
 
     // ── Zmanim ───────────────────────────────────────────────────────────────
 
-    private fun buildZmanim(cal: ComplexZmanimCalendar, tz: TimeZone, system: PrayerSystem): List<ZmanItem> {
-        val tzait18 = cal.sunset?.let { Date(it.time + 18 * 60 * 1000) }
+    private fun buildZmanim(
+        cal: ComplexZmanimCalendar,
+        erevCal: ComplexZmanimCalendar,
+        shabbatCal: ComplexZmanimCalendar,
+        tz: TimeZone,
+        system: PrayerSystem,
+    ): List<ZmanItem> {
+        val tzait18 = tzaitZmaniyot(cal)
         return when (system) {
             PrayerSystem.MIZRACHI -> listOf(
-                ZmanItem("עלות השחר",         fmt(cal.alos72, tz)),
+                ZmanItem("עלות השחר",         fmt(cal.alos72Zmanis, tz)),
                 ZmanItem("זמן ציצית ותפילין", fmt(cal.misheyakir11Point5Degrees, tz)),
                 ZmanItem("הנץ החמה",           fmt(cal.sunrise, tz)),
                 ZmanItem("סו\"זק\"ש מג\"א",   fmt(cal.sofZmanShmaMGA, tz)),
                 ZmanItem("חצות",              fmt(cal.chatzos, tz)),
                 ZmanItem("שקיעה",             fmt(cal.sunset, tz)),
                 ZmanItem("צאת הכוכבים",       fmt(tzait18, tz)),
-                ZmanItem("הדלקת נרות",        fmt(cal.candleLighting, tz)),
-                ZmanItem("צאת השבת",          fmt(cal.tzaisGeonim8Point5Degrees, tz)),
+                ZmanItem("הדלקת נרות",        fmt(candleLightingZmaniyot(erevCal, system), tz)),
+                ZmanItem("צאת השבת",          fmt(shabbatCal.tzaisGeonim8Point5Degrees, tz)),
             )
             PrayerSystem.ASHKENAZ -> listOf(
                 ZmanItem("עלות השחר",         fmt(cal.alos90, tz)),
@@ -70,8 +96,8 @@ object ZmanimCalculator {
                 ZmanItem("חצות",              fmt(cal.chatzos, tz)),
                 ZmanItem("שקיעה",             fmt(cal.sunset, tz)),
                 ZmanItem("צאת הכוכבים",       fmt(tzait18, tz)),
-                ZmanItem("הדלקת נרות",        fmt(cal.candleLighting, tz)),
-                ZmanItem("צאת השבת",          fmt(cal.tzais72, tz)),
+                ZmanItem("הדלקת נרות",        fmt(candleLightingZmaniyot(erevCal, system), tz)),
+                ZmanItem("צאת השבת",          fmt(shabbatCal.tzais72, tz)),
             )
         }
     }
@@ -80,6 +106,8 @@ object ZmanimCalculator {
 
     private fun buildPrayerTimes(
         cal: ComplexZmanimCalendar,
+        erevCal: ComplexZmanimCalendar,
+        shabbatCal: ComplexZmanimCalendar,
         tz: TimeZone,
         settings: AppSettings,
     ): Pair<List<TefilaItem>, List<TefilaItem>> {
@@ -88,7 +116,7 @@ object ZmanimCalculator {
             PrayerTimeMode.HANETZ -> fmt(cal.sunrise?.let { Date(it.time + settings.shacharitWeekdayOffset * 60_000L) }, tz)
         }
         val minchaWeekday = cal.sunset?.let { Date(it.time + settings.minchaWeekdayOffset * 60_000L) }
-        val arvitWeekday  = cal.sunset?.let { Date(it.time + 18 * 60_000L) }
+        val arvitWeekday  = tzaitZmaniyot(cal)
 
         val weekday = listOf(
             TefilaItem("שחרית", shacharitWeekday),
@@ -98,13 +126,15 @@ object ZmanimCalculator {
 
         val shacharitShabbat = when (settings.shacharitShabbatMode) {
             PrayerTimeMode.MANUAL -> settings.shacharitShabbatTime
-            PrayerTimeMode.HANETZ -> fmt(cal.sunrise?.let { Date(it.time + settings.shacharitShabbatOffset * 60_000L) }, tz)
+            PrayerTimeMode.HANETZ -> fmt(shabbatCal.sunrise?.let { Date(it.time + settings.shacharitShabbatOffset * 60_000L) }, tz)
         }
-        val minchaShabbat = cal.candleLighting?.let { Date(it.time + settings.minchaShabbatOffset * 60_000L) }
-        val arvitHavdalah = cal.sunset?.let { Date(it.time + (18 + settings.arvitShabbatOffset) * 60_000L) }
+        val candleLighting  = candleLightingZmaniyot(erevCal, settings.prayerSystem)
+        val kabbalatShabbat = candleLighting?.let { Date(it.time + settings.kabbalatShabbatOffset * 60_000L) }
+        val minchaShabbat   = candleLighting?.let { Date(it.time + settings.minchaShabbatOffset   * 60_000L) }
+        val arvitHavdalah   = tzaitZmaniyot(shabbatCal)?.let { Date(it.time + settings.arvitShabbatOffset * 60_000L) }
 
         val shabbat = listOf(
-            TefilaItem("מנחה וקבלת שבת", fmt(cal.candleLighting, tz)),
+            TefilaItem("מנחה וקבלת שבת", fmt(kabbalatShabbat, tz)),
             TefilaItem("שחרית",          shacharitShabbat),
             TefilaItem("מנחה",           fmt(minchaShabbat, tz)),
             TefilaItem("ערבית והבדלה",   fmt(arvitHavdalah,  tz)),
@@ -118,7 +148,9 @@ object ZmanimCalculator {
     fun getHebrewCalendarInfo(system: PrayerSystem = PrayerSystem.MIZRACHI, testDateTimeMs: Long? = null, tzaitMs: Long? = null): HebrewCalendarInfo {
         return try {
             val nowMs = testDateTimeMs ?: System.currentTimeMillis()
-            val jewishCal = JewishCalendar(Date(nowMs))
+            val israelTz = TimeZone.getTimeZone("Asia/Jerusalem")
+            val jewishCal = JewishCalendar(Calendar.getInstance(israelTz).apply { timeInMillis = nowMs })
+            jewishCal.inIsrael = true
             // Hebrew day starts at nightfall — advance if current time is past today's Tzait
             if (tzaitMs != null && nowMs > tzaitMs) {
                 jewishCal.forward(Calendar.DATE, 1)
@@ -187,6 +219,10 @@ object ZmanimCalculator {
             val tachanunOmitted = !isShabbat && noTachanunPeriod
             val tzidkatchaOmitted = isShabbat && noTachanunPeriod
 
+            // שם החג / יום מיוחד
+            val holidayLabel = getHolidayLabel(jewishCal)
+            val alHaNisim = holidayLabel == "חנוכה" || holidayLabel == "פורים" || holidayLabel == "שושן פורים"
+
             HebrewCalendarInfo(
                 hebrewDate = dateStr,
                 dayOfWeek = dayOfWeek,
@@ -201,6 +237,9 @@ object ZmanimCalculator {
                 omerText = omerStr,
                 isTachanunOmitted = tachanunOmitted,
                 isTzidkatchaOmitted = tzidkatchaOmitted,
+                fastName = "",
+                isAlHaNisim = alHaNisim,
+                holidayLabel = holidayLabel,
             )
         } catch (e: Exception) {
             HebrewCalendarInfo()
@@ -259,6 +298,140 @@ object ZmanimCalculator {
             JewishCalendar.TISHREI -> if (day <= 23) return true                  // א' תשרי–כ"ג (ר"ה–אסרו חג סוכות)
         }
         return false
+    }
+
+    // ── Fast detection + time calculation ────────────────────────────────────
+
+    private data class FastInfo(val name: String, val start: String, val end: String, val daysAhead: Int = 0)
+
+    // Scan from today through the next 7 days — covers "display from Shabbat before the fast"
+    private fun findUpcomingFast(
+        todayCal: JewishCalendar,
+        mainCal: ComplexZmanimCalendar,
+        tz: TimeZone,
+        system: PrayerSystem,
+    ): FastInfo? {
+        val scanCal = todayCal.clone() as JewishCalendar
+        for (daysAhead in 0..6) {
+            val name = getFastName(scanCal)
+            if (name.isNotEmpty()) {
+                val fastZmanim = mainCal.clone() as ComplexZmanimCalendar
+                fastZmanim.calendar = Calendar.getInstance(tz).apply {
+                    timeInMillis = mainCal.calendar.timeInMillis
+                    add(Calendar.DATE, daysAhead)
+                }
+                // Tisha BeAv starts at sunset of the previous day
+                val isTishaBeAv = scanCal.jewishMonth == JewishCalendar.AV && scanCal.jewishDayOfMonth in 9..10
+                val start = if (isTishaBeAv) {
+                    val prevZmanim = mainCal.clone() as ComplexZmanimCalendar
+                    prevZmanim.calendar = Calendar.getInstance(tz).apply {
+                        timeInMillis = mainCal.calendar.timeInMillis
+                        add(Calendar.DATE, daysAhead - 1)
+                    }
+                    fmt(prevZmanim.sunset, tz)
+                } else {
+                    when (system) {
+                        PrayerSystem.MIZRACHI -> fmt(fastZmanim.alos72Zmanis, tz)
+                        PrayerSystem.ASHKENAZ -> fmt(fastZmanim.alos90, tz)
+                    }
+                }
+                val end = fmt(tzaitZmaniyot(fastZmanim), tz)
+                return FastInfo(name, start, end, daysAhead)
+            }
+            scanCal.forward(Calendar.DATE, 1)
+        }
+        return null
+    }
+
+    // Fast day name — empty string on non-fast days; Yom Kippur excluded (shows via parasha/holiday display)
+    private fun getFastName(cal: JewishCalendar): String {
+        if (!cal.isTaanis) return ""
+        val m = cal.jewishMonth
+        val d = cal.jewishDayOfMonth
+        return when {
+            m == JewishCalendar.TISHREI && d in 3..4   -> "גדליה"
+            m == JewishCalendar.TEVES   && d == 10     -> "עשרה בטבת"
+            (m == JewishCalendar.ADAR || m == JewishCalendar.ADAR_II) && d in 11..13 -> "אסתר"
+            m == JewishCalendar.TAMMUZ  && d in 17..18 -> "שבעה עשר בתמוז"
+            m == JewishCalendar.AV      && d in 9..10  -> "תשעה באב"
+            else -> ""
+        }
+    }
+
+    // שם החג/היום המיוחד לתצוגה בלוח התפילות — ריק אם אין
+    private fun getHolidayLabel(cal: JewishCalendar): String {
+        val m = cal.jewishMonth
+        val d = cal.jewishDayOfMonth
+
+        // חנוכה
+        val isChanukah = try { cal.isChanukah } catch (e: Exception) {
+            (m == JewishCalendar.KISLEV && d >= 25) || (m == JewishCalendar.TEVES && d <= 3)
+        }
+        if (isChanukah) return "חנוכה"
+
+        // ט"ו בשבט
+        if (m == JewishCalendar.SHEVAT && d == 15) return "ט\"ו בשבט"
+
+        // פורים ושושן פורים
+        val isLeap = cal.isJewishLeapYear
+        if (!isLeap && m == JewishCalendar.ADAR) {
+            if (d == 14) return "פורים"
+            if (d == 15) return "שושן פורים"
+        }
+        if (isLeap && m == JewishCalendar.ADAR_II) {
+            if (d == 14) return "פורים"
+            if (d == 15) return "שושן פורים"
+        }
+
+        // ימים לאומיים — KosherJava מטפל בהזזות דרך yomTovIndex
+        val modernCal = (cal.clone() as JewishCalendar).also { it.isUseModernHolidays = true }
+        when (modernCal.yomTovIndex) {
+            JewishCalendar.YOM_HASHOAH      -> return "יום השואה והגבורה"
+            JewishCalendar.YOM_HAZIKARON    -> return "יום הזכרון"
+            JewishCalendar.YOM_HAATZMAUT    -> return "יום העצמאות"
+            JewishCalendar.YOM_YERUSHALAYIM -> return "יום ירושלים"
+        }
+
+        // ניסן/אייר/אב — ימים קבועים
+        if (m == JewishCalendar.IYAR && d == 14) return "פסח שני"
+        if (m == JewishCalendar.IYAR && d == 18) return "ל\"ג בעומר"
+        if (m == JewishCalendar.AV   && d == 15) return "ט\"ו באב"
+
+        // שבתות מיוחדות — מוצג כל השבוע (ראשון עד שבת כולל)
+        return getSpecialShabbatLabel(cal)
+    }
+
+    // שם השבת המיוחדת של השבוע הנוכחי — מוצא את השבת הקרובה (כולל היום אם שבת)
+    private fun getSpecialShabbatLabel(cal: JewishCalendar): String {
+        val shabbatCal = cal.clone() as JewishCalendar
+        shabbatCal.inIsrael = true
+        while (shabbatCal.dayOfWeek != Calendar.SATURDAY) {
+            shabbatCal.forward(Calendar.DATE, 1)
+        }
+
+        // ארבע פרשיות
+        when (shabbatCal.specialShabbos) {
+            JewishCalendar.Parsha.SHKALIM    -> return "שבת שקלים"
+            JewishCalendar.Parsha.ZACHOR     -> return "שבת זכור"
+            JewishCalendar.Parsha.PARA       -> return "שבת פרה"
+            JewishCalendar.Parsha.HACHODESH  -> return "שבת החודש"
+            else -> Unit
+        }
+
+        // שבת הגדול: שבת שלפני פסח (י-י"ד ניסן)
+        val sm = shabbatCal.jewishMonth
+        val sd = shabbatCal.jewishDayOfMonth
+        if (sm == JewishCalendar.NISSAN && sd in 10..14) return "שבת הגדול"
+
+        // שבת חזון (שבת שלפני תשעה באב): ג'–ח' אב  |  שבת נחמו (שבת שאחרי): י'–ט"ז אב
+        if (sm == JewishCalendar.AV && sd in 3..8)   return "שבת חזון"
+        if (sm == JewishCalendar.AV && sd in 10..16) return "שבת נחמו"
+
+        // שבת שירה — לפי הפרשה (בשלח)
+        return when (shabbatCal.parshah) {
+            JewishCalendar.Parsha.BESHALACH -> "שבת שירה"
+            else -> ""
+        }
     }
 
     // יעלה ויבוא: ראש חודש + כל ימי פסח, סוכות ושמיני עצרת, שבועות
@@ -450,6 +623,59 @@ object ZmanimCalculator {
             JewishCalendar.Parsha.VZOS_HABERACHA       -> "ויהי אחרי"
             else -> ""
         }
+    }
+
+    // ── Shabbat / Yom Tov calendar helpers ───────────────────────────────────
+
+    private fun calAdvancedBy(base: ComplexZmanimCalendar, tz: TimeZone, days: Int): ComplexZmanimCalendar {
+        if (days == 0) return base
+        return (base.clone() as ComplexZmanimCalendar).also { c ->
+            c.calendar = Calendar.getInstance(tz).apply {
+                timeInMillis = base.calendar.timeInMillis
+                add(Calendar.DATE, days)
+            }
+        }
+    }
+
+    // Days until the next Erev Shabbat or Erev Yom Tov (0 = today is already Erev).
+    private fun daysToNextErev(base: ComplexZmanimCalendar): Int {
+        val israelTz = TimeZone.getTimeZone("Asia/Jerusalem")
+        val scan = JewishCalendar(Calendar.getInstance(israelTz).apply { timeInMillis = base.calendar.timeInMillis })
+        scan.inIsrael = true
+        for (i in 0..8) {
+            if (scan.dayOfWeek == Calendar.FRIDAY) return i
+            val tomorrow = (scan.clone() as JewishCalendar).also { it.forward(Calendar.DATE, 1) }
+            if (tomorrow.isYomTovAssurBemelacha) return i
+            scan.forward(Calendar.DATE, 1)
+        }
+        return (Calendar.FRIDAY - base.calendar.get(Calendar.DAY_OF_WEEK) + 7) % 7
+    }
+
+    // Days until the next Shabbat or Yom Tov (0 = today is already Shabbat/YT).
+    private fun daysToNextShabbatOrYomTov(base: ComplexZmanimCalendar): Int {
+        val israelTz = TimeZone.getTimeZone("Asia/Jerusalem")
+        val scan = JewishCalendar(Calendar.getInstance(israelTz).apply { timeInMillis = base.calendar.timeInMillis })
+        scan.inIsrael = true
+        for (i in 0..8) {
+            if (scan.dayOfWeek == Calendar.SATURDAY || scan.isYomTovAssurBemelacha) return i
+            scan.forward(Calendar.DATE, 1)
+        }
+        return (Calendar.SATURDAY - base.calendar.get(Calendar.DAY_OF_WEEK) + 7) % 7
+    }
+
+    // 20 (or 18) zmaniyot minutes (MGA sha'ah) before sunset
+    private fun candleLightingZmaniyot(erevCal: ComplexZmanimCalendar, system: PrayerSystem): Date? {
+        val offsetMin = if (system == PrayerSystem.MIZRACHI) 20 else 18
+        val shaahMs = erevCal.shaahZmanisMGA.takeIf { it > 0 } ?: return null
+        val sunset = erevCal.sunset ?: return null
+        return Date(sunset.time - offsetMin * shaahMs / 60)
+    }
+
+    // 18 zmaniyot minutes (MGA sha'ah) after sunset
+    private fun tzaitZmaniyot(cal: ComplexZmanimCalendar): Date? {
+        val shaahMs = cal.shaahZmanisMGA.takeIf { it > 0 } ?: return null
+        val sunset = cal.sunset ?: return null
+        return Date(sunset.time + 18 * shaahMs / 60)
     }
 
     // ── Format helper ─────────────────────────────────────────────────────────

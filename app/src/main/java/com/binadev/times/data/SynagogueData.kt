@@ -28,6 +28,11 @@ data class HebrewCalendarInfo(
     val omerText: String = "",
     val isTachanunOmitted: Boolean = false,
     val isTzidkatchaOmitted: Boolean = false,
+    val fastName: String = "",
+    val fastStart: String = "",
+    val fastEnd: String = "",
+    val isAlHaNisim: Boolean = false,
+    val holidayLabel: String = "",
 )
 
 // ── Slide content types ───────────────────────────────────────────────────────

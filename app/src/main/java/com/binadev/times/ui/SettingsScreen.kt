@@ -61,6 +61,7 @@ fun SettingsScreen(
     var shacharitShabbatMode   by remember { mutableStateOf(currentSettings.shacharitShabbatMode) }
     var shacharitShabbatTime   by remember { mutableStateOf(currentSettings.shacharitShabbatTime) }
     var shacharitShabbatOffset by remember { mutableIntStateOf(currentSettings.shacharitShabbatOffset) }
+    var kabbalatShabbatOffset  by remember { mutableIntStateOf(currentSettings.kabbalatShabbatOffset) }
     var minchaShabbatOffset    by remember { mutableIntStateOf(currentSettings.minchaShabbatOffset) }
     var arvitShabbatOffset     by remember { mutableIntStateOf(currentSettings.arvitShabbatOffset) }
     var testDateEnabled by remember { mutableStateOf(currentSettings.testDateTime != null) }
@@ -212,6 +213,13 @@ fun SettingsScreen(
                             onModeChange   = { shacharitShabbatMode = it },
                             onTimeChange   = { shacharitShabbatTime = it },
                             onOffsetChange = { shacharitShabbatOffset = it },
+                        )
+                        Spacer(Modifier.height(14.dp))
+                        OffsetTimeSetting(
+                            label          = "מנחה וקבלת שבת",
+                            baseLabel      = "הדל\"נ",
+                            offset         = kabbalatShabbatOffset,
+                            onOffsetChange = { kabbalatShabbatOffset = it },
                         )
                         Spacer(Modifier.height(14.dp))
                         OffsetTimeSetting(
@@ -383,6 +391,7 @@ fun SettingsScreen(
                                     shacharitShabbatMode   = shacharitShabbatMode,
                                     shacharitShabbatTime   = shacharitShabbatTime,
                                     shacharitShabbatOffset = shacharitShabbatOffset,
+                                    kabbalatShabbatOffset  = kabbalatShabbatOffset,
                                     minchaShabbatOffset    = minchaShabbatOffset,
                                     arvitShabbatOffset     = arvitShabbatOffset,
                                 ))

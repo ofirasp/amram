@@ -45,34 +45,33 @@ fun SidePanel(
             else FlagChip("מוריד הטל")
             if (hebrewInfo.isWinterBlessingSeason) FlagChip("ברך עלינו") else FlagChip("ברכנו")
             if (hebrewInfo.isYaaleVeyavo) FlagChip("יעלה ויבוא")
+            if (hebrewInfo.isAlHaNisim)  FlagChip("על הניסים")
             if (hebrewInfo.isShabbatMevorchim) FlagChip("שבת מברכים")
-            if (hebrewInfo.isTachanunOmitted) FlagChip("א\"א תחנון")
-            if (hebrewInfo.isTzidkatchaOmitted) FlagChip("א\"א צדקתך")
-
-            // Molad
             if (hebrewInfo.moladText.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = hebrewInfo.moladText,
-                    fontSize = 9.5.sp,
+                    fontSize = 11.5.sp,
                     color = White.copy(alpha = 0.7f),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
+            if (hebrewInfo.isTachanunOmitted) FlagChip("א\"א תחנון")
+            if (hebrewInfo.isTzidkatchaOmitted) FlagChip("א\"א צדקתך")
 
             // Omer
             if (hebrewInfo.omerText.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = "ספירת העומר",
-                    fontSize = 10.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = White,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Text(
                     text = hebrewInfo.omerText,
-                    fontSize = 9.5.sp,
+                    fontSize = 11.5.sp,
                     lineHeight = 11.sp,
                     color = White.copy(alpha = 0.85f),
                     modifier = Modifier.fillMaxWidth(),
@@ -84,7 +83,7 @@ fun SidePanel(
             // City + minhag indicator
             Text(
                 text = "${settings.city.nameHebrew} · ${settings.prayerSystem.hebrewName}",
-                fontSize = 10.sp,
+                fontSize = 12.sp,
                 color = White.copy(alpha = 0.6f),
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
@@ -98,7 +97,7 @@ fun SidePanel(
 private fun SideSectionHeader(title: String) {
     Text(
         text = title,
-        fontSize = 12.sp,
+        fontSize = 14.sp,
         fontWeight = FontWeight.Bold,
         color = Gold,
         modifier = Modifier
@@ -117,8 +116,8 @@ private fun SideTimeRow(item: ZmanItem) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = item.label, fontSize = 11.sp, color = White, textAlign = TextAlign.End)
-        Text(text = item.time, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = White)
+        Text(text = item.label, fontSize = 13.sp, color = White, textAlign = TextAlign.End)
+        Text(text = item.time, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = White)
     }
 }
 
@@ -127,7 +126,7 @@ private fun SideTimeRow(item: ZmanItem) {
 private fun FlagChip(text: String) {
     Text(
         text = "• $text",
-        fontSize = 11.sp,
+        fontSize = 13.sp,
         color = White.copy(alpha = 0.85f),
         modifier = Modifier.fillMaxWidth(),
     )
