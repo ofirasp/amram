@@ -13,6 +13,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.DisposableEffect
@@ -21,8 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -392,22 +395,38 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
                 )
             }
 
-            // Center: rotating slides
-            Box(modifier = Modifier.weight(0.56f).fillMaxHeight()) {
-                AnimatedContent(
-                    targetState = slideIndex,
-                    transitionSpec = {
-                        (fadeIn(tween(600)) + slideInHorizontally(tween(600)) { -it / 4 })
-                            .togetherWith(fadeOut(tween(400)) + slideOutHorizontally(tween(400)) { it / 4 })
-                    },
-                    label = "slide",
-                ) { idx ->
-                    ContentArea(
-                        slide = slides[idx],
-                        slideIndex = idx,
-                        totalSlides = slides.size,
-                        omerText = daily.hebrewInfo.omerText,
+            // Center: omer (fixed) + rotating slides
+            Column(modifier = Modifier.weight(0.56f).fillMaxHeight()) {
+                if (daily.hebrewInfo.omerText.isNotEmpty()) {
+                    Text(
+                        text = daily.hebrewInfo.omerText,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFD32F2F),
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 4.dp)
+                            .basicMarquee(),
                     )
+                }
+                Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                    AnimatedContent(
+                        targetState = slideIndex,
+                        transitionSpec = {
+                            (fadeIn(tween(600)) + slideInHorizontally(tween(600)) { -it / 4 })
+                                .togetherWith(fadeOut(tween(400)) + slideOutHorizontally(tween(400)) { it / 4 })
+                        },
+                        label = "slide",
+                    ) { idx ->
+                        ContentArea(
+                            slide = slides[idx],
+                            slideIndex = idx,
+                            totalSlides = slides.size,
+                        )
+                    }
                 }
             }
 

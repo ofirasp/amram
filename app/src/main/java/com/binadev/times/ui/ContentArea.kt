@@ -5,7 +5,6 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -18,10 +17,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,7 +33,7 @@ import com.binadev.times.ui.theme.*
 
 @OptIn(ExperimentalTvMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
-fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int, omerText: String = "") {
+fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int) {
     val context = LocalContext.current
     val torahImage = remember(slide) {
         val asset = (slide.content as? SlideContent.TorahLesson)?.imageAsset
@@ -57,23 +54,6 @@ fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int, omerText
                     .fillMaxSize()
                     .padding(start = 32.dp, end = 32.dp, top = 16.dp, bottom = 36.dp)
             ) {
-                // Omer count — above slide title, single line with marquee if too long
-                if (omerText.isNotEmpty()) {
-                    Text(
-                        text = omerText,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFD32F2F),
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 6.dp)
-                            .basicMarquee(),
-                    )
-                }
-
                 // Slide title
                 Row(
                     modifier = Modifier
