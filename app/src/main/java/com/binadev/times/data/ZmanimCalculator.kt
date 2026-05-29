@@ -81,7 +81,7 @@ object ZmanimCalculator {
                 ZmanItem("עלות השחר",         fmt(cal.alos72Zmanis, tz)),
                 ZmanItem("זמן ציצית ותפילין", fmt(cal.misheyakir11Point5Degrees, tz)),
                 ZmanItem("הנץ החמה",           fmt(cal.sunrise, tz)),
-                ZmanItem("סו\"זק\"ש מג\"א",   fmt(cal.sofZmanShmaMGA, tz)),
+                ZmanItem("סו\"זק\"ש מג\"א",   fmt(sofZmanShmaMGACorrected(cal), tz)),
                 ZmanItem("חצות",              fmt(cal.chatzos, tz)),
                 ZmanItem("שקיעה",             fmt(cal.sunset, tz)),
                 ZmanItem("צאת הכוכבים",       fmt(tzait18, tz)),
@@ -669,6 +669,16 @@ object ZmanimCalculator {
         val shaahMs = erevCal.shaahZmanisMGA.takeIf { it > 0 } ?: return null
         val sunset = erevCal.sunset ?: return null
         return Date(sunset.time - offsetMin * shaahMs / 60)
+    }
+
+    // Sof zman KS MGA corrected: derived from the same sunset calibration as candle lighting.
+    // correctedTzait72 = sunset − 20×sha'ah/60 + 92min  (20min candle-lighting standard + 72min tzait)
+    // sof = correctedTzait72 − 9×sha'ah
+    private fun sofZmanShmaMGACorrected(cal: ComplexZmanimCalendar): Date? {
+        val shaahMs = cal.shaahZmanisMGA.takeIf { it > 0 } ?: return null
+        val sunset = cal.sunset ?: return null
+        val correctedTzait72 = sunset.time - 20L * shaahMs / 60 + 92L * 60_000L
+        return Date(correctedTzait72 - 9L * shaahMs)
     }
 
     // 18 zmaniyot minutes (MGA sha'ah) after sunset
