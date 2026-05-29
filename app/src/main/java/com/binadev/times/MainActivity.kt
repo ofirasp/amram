@@ -215,11 +215,13 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
         }
     }
 
-    // Night dimming 22:00–4:00 at 30% brightness
+    // Night dimming at configurable hours
     val activity = LocalContext.current as? android.app.Activity
-    LaunchedEffect(timeTick) {
+    LaunchedEffect(timeTick, settings.nightDimStart, settings.nightDimEnd) {
         val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        val isNight = hour >= 22 || hour < 4
+        val s = settings.nightDimStart
+        val e = settings.nightDimEnd
+        val isNight = if (s > e) hour >= s || hour < e else hour in s until e
         activity?.window?.let { win ->
             val attrs = win.attributes
             attrs.screenBrightness =

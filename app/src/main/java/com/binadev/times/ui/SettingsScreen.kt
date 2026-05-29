@@ -64,6 +64,8 @@ fun SettingsScreen(
     var kabbalatShabbatOffset  by remember { mutableIntStateOf(currentSettings.kabbalatShabbatOffset) }
     var minchaShabbatOffset    by remember { mutableIntStateOf(currentSettings.minchaShabbatOffset) }
     var arvitShabbatOffset     by remember { mutableIntStateOf(currentSettings.arvitShabbatOffset) }
+    var nightDimStart by remember { mutableIntStateOf(currentSettings.nightDimStart) }
+    var nightDimEnd   by remember { mutableIntStateOf(currentSettings.nightDimEnd) }
     var testDateEnabled by remember { mutableStateOf(currentSettings.testDateTime != null) }
     val initCal = remember {
         Calendar.getInstance().apply {
@@ -332,7 +334,7 @@ fun SettingsScreen(
                     }
                 }
 
-                // ── Moed checkbox ────────────────────────────────────────────
+                // ── Moed checkbox + Night dim hours ──────────────────────────
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -346,7 +348,27 @@ fun SettingsScreen(
                             onToggle = { showMoedSlides = !showMoedSlides },
                         )
                     }
-                    Spacer(modifier = Modifier.weight(2f))
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text("עמעום לילה:", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Gold)
+                        NumberStepper(
+                            label = "התחלה",
+                            value = nightDimStart,
+                            min = 0, max = 23, wrap = true,
+                            modifier = Modifier.width(80.dp),
+                        ) { nightDimStart = it }
+                        Text("עד", fontSize = 12.sp, color = TextMuted)
+                        NumberStepper(
+                            label = "סיום",
+                            value = nightDimEnd,
+                            min = 0, max = 23, wrap = true,
+                            modifier = Modifier.width(80.dp),
+                        ) { nightDimEnd = it }
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
                 }
 
                 // ── Save / Cancel / Memo editor footer ───────────────────────
@@ -396,6 +418,8 @@ fun SettingsScreen(
                                     kabbalatShabbatOffset  = kabbalatShabbatOffset,
                                     minchaShabbatOffset    = minchaShabbatOffset,
                                     arvitShabbatOffset     = arvitShabbatOffset,
+                                    nightDimStart          = nightDimStart,
+                                    nightDimEnd            = nightDimEnd,
                                 ))
                             },
                         )
