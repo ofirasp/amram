@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
+import com.binadev.times.BuildConfig
 import com.binadev.times.R
 import com.binadev.times.data.*
 import com.kosherjava.zmanim.hebrewcalendar.JewishCalendar
@@ -143,6 +144,7 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
     val context = LocalContext.current
     var slideIndex by remember { mutableIntStateOf(0) }
     var currentTime by remember { mutableStateOf("") }
+    var currentDate by remember { mutableStateOf("") }
     var daily by remember { mutableStateOf(DailyCalculations()) }
     var yahrzeits by remember { mutableStateOf<List<YahrtzeitEntry>>(emptyList()) }
     var moedSlides by remember { mutableStateOf<List<ContentSlide>>(emptyList()) }
@@ -193,14 +195,18 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
         }
     }
 
-    // Live clock — frozen at test date when override is active
+    // Live clock + date — frozen at test date when override is active
     LaunchedEffect(settings.testDateTime) {
-        val fmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        val dateFmt = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         if (settings.testDateTime != null) {
-            currentTime = fmt.format(Date(settings.testDateTime))
+            currentTime = timeFmt.format(Date(settings.testDateTime))
+            currentDate = dateFmt.format(Date(settings.testDateTime))
         } else {
             while (true) {
-                currentTime = fmt.format(Date())
+                val now = Date()
+                currentTime = timeFmt.format(now)
+                currentDate = dateFmt.format(now)
                 delay(1_000)
             }
         }
@@ -468,6 +474,15 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = w * 0.06f, bottom = h * 0.02f),
+        )
+        // Gregorian date + version — bottom-right (BottomStart in RTL layout)
+        Text(
+            text = "ver ${BuildConfig.VERSION_NAME}  $currentDate",
+            fontSize = 12.sp,
+            color = White.copy(alpha = 0.6f),
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = w * 0.06f, bottom = h * 0.02f),
         )
     }
     if (isNightDim) {

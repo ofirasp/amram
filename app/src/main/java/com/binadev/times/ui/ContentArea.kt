@@ -171,9 +171,9 @@ private fun TorahContent(title: String, content: SlideContent.TorahLesson) {
         ) {
             Text(
                 text = content.body,
-                fontSize = 12.sp,
+                fontSize = 15.sp,
                 color = TextPrimary,
-                lineHeight = 15.sp,
+                lineHeight = 18.sp,
                 textAlign = TextAlign.Start,
                 modifier = Modifier.fillMaxWidth()
             )
