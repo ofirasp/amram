@@ -637,11 +637,14 @@ object ZmanimCalculator {
         }
     }
 
-    // Days until the next Erev Shabbat or Erev Yom Tov (0 = today is already Erev).
+    // Days until the next Erev Shabbat or Erev Yom Tov (0 = today is Erev, -1 = yesterday was Erev).
+    // On Shabbat/Yom Tov itself we return -1 so the current Shabbat's times are shown.
+    // Switch to next week only from Sunday onwards.
     private fun daysToNextErev(base: ComplexZmanimCalendar): Int {
         val israelTz = TimeZone.getTimeZone("Asia/Jerusalem")
         val scan = JewishCalendar(Calendar.getInstance(israelTz).apply { timeInMillis = base.calendar.timeInMillis })
         scan.inIsrael = true
+        if (scan.dayOfWeek == Calendar.SATURDAY || scan.isYomTovAssurBemelacha) return -1
         for (i in 0..8) {
             if (scan.dayOfWeek == Calendar.FRIDAY) return i
             val tomorrow = (scan.clone() as JewishCalendar).also { it.forward(Calendar.DATE, 1) }
