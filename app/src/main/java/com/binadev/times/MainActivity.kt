@@ -345,7 +345,8 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (daily.hebrewInfo.haftara.isNotEmpty()) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally,
+                               modifier = Modifier.offset(y = 3.dp)) {
                             Text(text = "הפטרה", fontSize = 10.sp, color = White.copy(alpha = 0.7f))
                             Text(
                                 text = daily.hebrewInfo.haftara,
