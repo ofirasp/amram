@@ -55,10 +55,10 @@ object SynagogueData {
         moedSlides: List<ContentSlide> = emptyList(),
     ): List<ContentSlide> = buildList {
         val nonEmpty = announcements.filter { it.isNotBlank() }
-        if (nonEmpty.isNotEmpty()) {
+        nonEmpty.chunked(2).forEach { chunk ->
             add(ContentSlide(
                 title = "הודעות לציבור",
-                content = SlideContent.Announcements(nonEmpty),
+                content = SlideContent.Announcements(chunk),
             ))
         }
         addAll(moedSlides)
