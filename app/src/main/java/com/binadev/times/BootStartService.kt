@@ -5,8 +5,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
-import android.os.IBinder
+import android.content.pm.ServiceInfo
+import android.os.Build
 import android.os.Handler
+import android.os.IBinder
 import android.os.Looper
 
 class BootStartService : Service() {
@@ -23,9 +25,13 @@ class BootStartService : Service() {
             .setContentTitle("מתחיל...")
             .setSmallIcon(android.R.drawable.ic_media_play)
             .build()
-        startForeground(1, notification)
 
-        // Small delay to let the system settle after boot
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            startForeground(1, notification)
+        }
+
         Handler(Looper.getMainLooper()).postDelayed({
             val launch = Intent(this, MainActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
