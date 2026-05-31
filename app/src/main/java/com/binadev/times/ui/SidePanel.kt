@@ -31,7 +31,7 @@ fun SidePanel(
             modifier = Modifier
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(8.dp))
-                .background(NavyDark.copy(alpha = 0.60f))
+                .background(NavyDark.copy(alpha = 0.85f))
                 .padding(horizontal = 10.dp, vertical = 8.dp),
         ) {
             // Zmanim

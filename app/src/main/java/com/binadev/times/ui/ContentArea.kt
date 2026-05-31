@@ -139,7 +139,7 @@ private fun AnnouncementsContent(content: SlideContent.Announcements) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
-                    .background(NavyDark.copy(alpha = 0.6f))
+                    .background(NavyDark.copy(alpha = 0.85f))
                     .padding(horizontal = 20.dp, vertical = 14.dp)
             ) {
                 Text(
@@ -166,7 +166,7 @@ private fun TorahContent(title: String, content: SlideContent.TorahLesson) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
-                .background(NavyDark.copy(alpha = 0.6f))
+                .background(NavyDark.copy(alpha = 0.85f))
                 .padding(horizontal = 24.dp, vertical = 20.dp)
         ) {
             Text(
@@ -210,7 +210,7 @@ private fun YahrtzeitCard(entry: YahrtzeitEntry, modifier: Modifier = Modifier) 
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(NavyDark.copy(alpha = 0.6f))
+            .background(NavyDark.copy(alpha = 0.85f))
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
