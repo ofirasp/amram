@@ -354,6 +354,14 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
                                 color = White,
                                 textAlign = TextAlign.Center,
                             )
+                            if (daily.hebrewInfo.haftaraSource.isNotEmpty()) {
+                                Text(
+                                    text = "(${daily.hebrewInfo.haftaraSource})",
+                                    fontSize = 10.sp,
+                                    color = White.copy(alpha = 0.7f),
+                                    textAlign = TextAlign.Center,
+                                )
+                            }
                         }
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {

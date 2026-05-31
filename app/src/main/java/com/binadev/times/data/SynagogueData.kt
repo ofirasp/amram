@@ -19,6 +19,7 @@ data class HebrewCalendarInfo(
     val dayOfWeek: String = "",
     val parasha: String = "",
     val haftara: String = "",
+    val haftaraSource: String = "",
     val dafYomi: String = "",
     val isYaaleVeyavo: Boolean = false,
     val isMashivHaruach: Boolean = false,

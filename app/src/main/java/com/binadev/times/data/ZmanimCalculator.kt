@@ -190,12 +190,15 @@ object ZmanimCalculator {
 
             val parasha: String
             val haftara: String
+            val haftaraSource: String
             if (foundHoliday != null) {
                 parasha = formatter.formatYomTov(foundHoliday)
                 haftara = ""
+                haftaraSource = ""
             } else {
                 parasha = formatter.formatParsha(shabbatCal)
                 haftara = haftaraForParsha(shabbatCal)
+                haftaraSource = haftaraSourceForParsha(shabbatCal)
             }
 
             // Daf Yomi
@@ -228,6 +231,7 @@ object ZmanimCalculator {
                 dayOfWeek = dayOfWeek,
                 parasha = parasha,
                 haftara = haftara,
+                haftaraSource = haftaraSource,
                 dafYomi = dafStr,
                 isYaaleVeyavo = isYaaleVeyavDay(jewishCal),
                 isMashivHaruach = isMashivHaruach(month, day),
@@ -621,6 +625,85 @@ object ZmanimCalculator {
             JewishCalendar.Parsha.NITZAVIM_VAYEILECH   -> "שוש אשיש"
             JewishCalendar.Parsha.HAAZINU              -> "וידבר דוד"
             JewishCalendar.Parsha.VZOS_HABERACHA       -> "ויהי אחרי"
+            else -> ""
+        }
+    }
+
+    private fun haftaraSourceForParsha(shabbatCal: JewishCalendar): String {
+        val special = shabbatCal.specialShabbos
+        if (special != JewishCalendar.Parsha.NONE) {
+            return when (special) {
+                JewishCalendar.Parsha.SHKALIM   -> "מלכים ב יב"
+                JewishCalendar.Parsha.ZACHOR     -> "שמואל א טו"
+                JewishCalendar.Parsha.PARA       -> "יחזקאל לו"
+                JewishCalendar.Parsha.HACHODESH  -> "יחזקאל מה"
+                else -> ""
+            }
+        }
+        if (shabbatCal.jewishMonth == JewishCalendar.NISSAN &&
+            shabbatCal.jewishDayOfMonth in 10..14) return "מלאכי ג"
+        return when (shabbatCal.parshah) {
+            JewishCalendar.Parsha.BERESHIS             -> "ישעיה מב"
+            JewishCalendar.Parsha.NOACH                -> "ישעיה נד"
+            JewishCalendar.Parsha.LECH_LECHA           -> "ישעיה מ"
+            JewishCalendar.Parsha.VAYERA               -> "מלכים ב ד"
+            JewishCalendar.Parsha.CHAYEI_SARA          -> "מלכים א א"
+            JewishCalendar.Parsha.TOLDOS               -> "מלאכי א"
+            JewishCalendar.Parsha.VAYETZEI             -> "הושע יב"
+            JewishCalendar.Parsha.VAYISHLACH           -> "הושע יא"
+            JewishCalendar.Parsha.VAYESHEV             -> "עמוס ב"
+            JewishCalendar.Parsha.MIKETZ               -> "מלכים א ג"
+            JewishCalendar.Parsha.VAYIGASH             -> "יחזקאל לז"
+            JewishCalendar.Parsha.VAYECHI              -> "מלכים א ב"
+            JewishCalendar.Parsha.SHEMOS               -> "ירמיה א"
+            JewishCalendar.Parsha.VAERA                -> "יחזקאל כח"
+            JewishCalendar.Parsha.BO                   -> "ירמיה מו"
+            JewishCalendar.Parsha.BESHALACH            -> "שופטים ד"
+            JewishCalendar.Parsha.YISRO                -> "ישעיה ו"
+            JewishCalendar.Parsha.MISHPATIM            -> "ירמיה לד"
+            JewishCalendar.Parsha.TERUMAH              -> "מלכים א ה"
+            JewishCalendar.Parsha.TETZAVEH             -> "יחזקאל מג"
+            JewishCalendar.Parsha.KI_SISA              -> "מלכים א יח"
+            JewishCalendar.Parsha.VAYAKHEL,
+            JewishCalendar.Parsha.PEKUDEI,
+            JewishCalendar.Parsha.VAYAKHEL_PEKUDEI     -> "מלכים א ז"
+            JewishCalendar.Parsha.VAYIKRA              -> "ישעיה מג"
+            JewishCalendar.Parsha.TZAV                 -> "מלאכי ג"
+            JewishCalendar.Parsha.SHMINI               -> "שמואל ב ו"
+            JewishCalendar.Parsha.TAZRIA,
+            JewishCalendar.Parsha.TAZRIA_METZORA       -> "מלכים ב ד"
+            JewishCalendar.Parsha.METZORA              -> "מלכים ב ז"
+            JewishCalendar.Parsha.ACHREI_MOS           -> "יחזקאל כב"
+            JewishCalendar.Parsha.KEDOSHIM,
+            JewishCalendar.Parsha.ACHREI_MOS_KEDOSHIM  -> "עמוס ט"
+            JewishCalendar.Parsha.EMOR                 -> "יחזקאל מד"
+            JewishCalendar.Parsha.BEHAR                -> "ירמיה לב"
+            JewishCalendar.Parsha.BECHUKOSAI,
+            JewishCalendar.Parsha.BEHAR_BECHUKOSAI     -> "ירמיה טז"
+            JewishCalendar.Parsha.BAMIDBAR             -> "הושע ב"
+            JewishCalendar.Parsha.NASSO                -> "שופטים יג"
+            JewishCalendar.Parsha.BEHAALOSCHA          -> "זכריה ב"
+            JewishCalendar.Parsha.SHLACH               -> "יהושע ב"
+            JewishCalendar.Parsha.KORACH               -> "שמואל א יא"
+            JewishCalendar.Parsha.CHUKAS               -> "שופטים יא"
+            JewishCalendar.Parsha.BALAK,
+            JewishCalendar.Parsha.CHUKAS_BALAK         -> "מיכה ה"
+            JewishCalendar.Parsha.PINCHAS              -> "מלכים א יח"
+            JewishCalendar.Parsha.MATOS                -> "ירמיה א"
+            JewishCalendar.Parsha.MASEI,
+            JewishCalendar.Parsha.MATOS_MASEI          -> "ירמיה ב"
+            JewishCalendar.Parsha.DEVARIM              -> "ישעיה א"
+            JewishCalendar.Parsha.VAESCHANAN           -> "ישעיה מ"
+            JewishCalendar.Parsha.EIKEV                -> "ישעיה מט"
+            JewishCalendar.Parsha.REEH                 -> "ישעיה נד"
+            JewishCalendar.Parsha.SHOFTIM              -> "ישעיה נא"
+            JewishCalendar.Parsha.KI_SEITZEI           -> "ישעיה נד"
+            JewishCalendar.Parsha.KI_SAVO              -> "ישעיה ס"
+            JewishCalendar.Parsha.NITZAVIM,
+            JewishCalendar.Parsha.NITZAVIM_VAYEILECH   -> "ישעיה סא"
+            JewishCalendar.Parsha.VAYEILECH            -> "הושע יד"
+            JewishCalendar.Parsha.HAAZINU              -> "שמואל ב כב"
+            JewishCalendar.Parsha.VZOS_HABERACHA       -> "יהושע א"
             else -> ""
         }
     }
