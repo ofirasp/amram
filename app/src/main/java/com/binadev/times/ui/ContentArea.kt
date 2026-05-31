@@ -104,25 +104,6 @@ fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int) {
                 }
             }
 
-            // Slide indicator bottom-center
-            Row(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                repeat(totalSlides) { i ->
-                    Box(
-                        modifier = Modifier
-                            .size(if (i == slideIndex) 10.dp else 6.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(
-                                if (i == slideIndex) Gold else NavyDivider
-                            )
-                    )
-                }
-            }
         }
     }
 }

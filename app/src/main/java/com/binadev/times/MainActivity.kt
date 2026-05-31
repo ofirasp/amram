@@ -15,6 +15,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.runtime.*
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
@@ -42,6 +44,7 @@ import com.binadev.times.ui.SettingsScreen
 import com.binadev.times.ui.SidePanel
 import com.binadev.times.ui.theme.Black
 import com.binadev.times.ui.theme.Gold
+import com.binadev.times.ui.theme.NavyDivider
 import com.binadev.times.ui.theme.NavyDark
 import com.binadev.times.ui.theme.TextSecondary
 import com.binadev.times.ui.theme.TimesTheme
@@ -441,6 +444,23 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
                             slideIndex = idx,
                             totalSlides = slides.size,
                         )
+                    }
+                    // Slide indicator — outside AnimatedContent so it stays fixed
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        repeat(slides.size) { i ->
+                            Box(
+                                modifier = Modifier
+                                    .size(if (i == slideIndex) 10.dp else 6.dp)
+                                    .clip(RoundedCornerShape(50))
+                                    .background(if (i == slideIndex) Gold else NavyDivider)
+                            )
+                        }
                     }
                 }
             }
