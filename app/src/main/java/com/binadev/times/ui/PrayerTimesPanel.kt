@@ -27,6 +27,7 @@ fun PrayerTimesPanel(
     fastName: String = "",
     fastStart: String = "",
     fastEnd: String = "",
+    fastDay: String = "",
     holidayLabel: String = "",
 ) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
@@ -48,6 +49,16 @@ fun PrayerTimesPanel(
             if (fastName.isNotEmpty()) {
                 PrayerDivider()
                 PrayerSectionHeader("צום $fastName")
+                if (fastDay.isNotEmpty()) {
+                    Text(
+                        text = fastDay,
+                        fontSize = 11.sp,
+                        color = GoldLight,
+                        modifier = androidx.compose.ui.Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 2.dp),
+                    )
+                }
                 if (fastStart.isNotEmpty()) PrayerRow(TefilaItem("כניסת הצום", fastStart))
                 if (fastEnd.isNotEmpty())   PrayerRow(TefilaItem("יציאת הצום", fastEnd))
             } else if (holidayLabel.isNotEmpty()) {

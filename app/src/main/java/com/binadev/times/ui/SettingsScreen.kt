@@ -64,8 +64,9 @@ fun SettingsScreen(
     var kabbalatShabbatOffset  by remember { mutableIntStateOf(currentSettings.kabbalatShabbatOffset) }
     var minchaShabbatOffset    by remember { mutableIntStateOf(currentSettings.minchaShabbatOffset) }
     var arvitShabbatOffset     by remember { mutableIntStateOf(currentSettings.arvitShabbatOffset) }
-    var nightDimStart by remember { mutableIntStateOf(currentSettings.nightDimStart) }
-    var nightDimEnd   by remember { mutableIntStateOf(currentSettings.nightDimEnd) }
+    var nightDimStart    by remember { mutableIntStateOf(currentSettings.nightDimStart) }
+    var nightDimEnd      by remember { mutableIntStateOf(currentSettings.nightDimEnd) }
+    var selichotOffset   by remember { mutableIntStateOf(currentSettings.selichotOffset) }
     var testDateEnabled by remember { mutableStateOf(currentSettings.testDateTime != null) }
     val initCal = remember {
         Calendar.getInstance().apply {
@@ -200,6 +201,13 @@ fun SettingsScreen(
                             onModeChange   = { shacharitWeekdayMode = it },
                             onTimeChange   = { shacharitWeekdayTime = it },
                             onOffsetChange = { shacharitWeekdayOffset = it },
+                        )
+                        Spacer(Modifier.height(14.dp))
+                        OffsetTimeSetting(
+                            label          = "סליחות (לפני שחרית)",
+                            baseLabel      = "שחרית −",
+                            offset         = selichotOffset,
+                            onOffsetChange = { selichotOffset = it },
                         )
                         Spacer(Modifier.height(14.dp))
                         OffsetTimeSetting(
@@ -420,6 +428,7 @@ fun SettingsScreen(
                                     arvitShabbatOffset     = arvitShabbatOffset,
                                     nightDimStart          = nightDimStart,
                                     nightDimEnd            = nightDimEnd,
+                                    selichotOffset         = selichotOffset,
                                 ))
                             },
                         )

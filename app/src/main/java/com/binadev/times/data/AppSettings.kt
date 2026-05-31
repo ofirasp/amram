@@ -55,6 +55,7 @@ data class AppSettings(
     val arvitShabbatOffset: Int = 0,
     val nightDimStart: Int = 22,
     val nightDimEnd: Int = 4,
+    val selichotOffset: Int = 60,
 )
 
 object SettingsStore {
@@ -76,8 +77,9 @@ object SettingsStore {
     private const val KEY_KAB_SH_OFFSET    = "kab_sh_offset"
     private const val KEY_MIN_SH_OFFSET   = "min_sh_offset"
     private const val KEY_ARVIT_SH_OFFSET = "arvit_sh_offset"
-    private const val KEY_NIGHT_DIM_START = "night_dim_start"
-    private const val KEY_NIGHT_DIM_END   = "night_dim_end"
+    private const val KEY_NIGHT_DIM_START  = "night_dim_start"
+    private const val KEY_NIGHT_DIM_END    = "night_dim_end"
+    private const val KEY_SELICHOT_OFFSET  = "selichot_offset"
 
     fun save(context: Context, settings: AppSettings) {
         val idx = PresetCities.indexOfFirst { it.nameEnglish == settings.city.nameEnglish }.coerceAtLeast(0)
@@ -102,6 +104,7 @@ object SettingsStore {
             .putInt(KEY_ARVIT_SH_OFFSET,  settings.arvitShabbatOffset)
             .putInt(KEY_NIGHT_DIM_START,  settings.nightDimStart)
             .putInt(KEY_NIGHT_DIM_END,    settings.nightDimEnd)
+            .putInt(KEY_SELICHOT_OFFSET,  settings.selichotOffset)
             .apply()
     }
 
@@ -144,6 +147,7 @@ object SettingsStore {
             arvitShabbatOffset     = prefs.getInt(KEY_ARVIT_SH_OFFSET, 0),
             nightDimStart          = prefs.getInt(KEY_NIGHT_DIM_START, 22),
             nightDimEnd            = prefs.getInt(KEY_NIGHT_DIM_END, 4),
+            selichotOffset         = prefs.getInt(KEY_SELICHOT_OFFSET, 60),
         )
     }
 }

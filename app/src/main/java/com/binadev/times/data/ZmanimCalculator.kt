@@ -58,6 +58,7 @@ object ZmanimCalculator {
                 fastName  = if (suppressFast) "" else fastData?.name  ?: "",
                 fastStart = if (suppressFast) "" else fastData?.start ?: "",
                 fastEnd   = if (suppressFast) "" else fastData?.end   ?: "",
+                fastDay   = if (suppressFast) "" else fastData?.day   ?: "",
             )
 
             DailyCalculations(zmanim, weekday, shabbat, hebrewInfo, tzaitMs)
@@ -118,11 +119,18 @@ object ZmanimCalculator {
         val minchaWeekday = cal.sunset?.let { Date(it.time + settings.minchaWeekdayOffset * 60_000L) }
         val arvitWeekday  = tzaitZmaniyot(cal)
 
-        val weekday = listOf(
-            TefilaItem("שחרית", shacharitWeekday),
-            TefilaItem("מנחה",  fmt(minchaWeekday, tz)),
-            TefilaItem("ערבית", fmt(arvitWeekday,  tz)),
-        )
+        val israelTz = TimeZone.getTimeZone("Asia/Jerusalem")
+        val jewishNow = JewishCalendar(Calendar.getInstance(israelTz).apply { timeInMillis = cal.calendar.timeInMillis })
+        jewishNow.inIsrael = true
+        val selichotTime = if (isSelichotPeriod(jewishNow, settings.prayerSystem))
+            selichotTimeStr(settings, cal, tz) else null
+
+        val weekday = buildList {
+            selichotTime?.let { add(TefilaItem("סליחות", it)) }
+            add(TefilaItem("שחרית", shacharitWeekday))
+            add(TefilaItem("מנחה",  fmt(minchaWeekday, tz)))
+            add(TefilaItem("ערבית", fmt(arvitWeekday,  tz)))
+        }
 
         val shacharitShabbat = when (settings.shacharitShabbatMode) {
             PrayerTimeMode.MANUAL -> settings.shacharitShabbatTime
@@ -306,7 +314,7 @@ object ZmanimCalculator {
 
     // ── Fast detection + time calculation ────────────────────────────────────
 
-    private data class FastInfo(val name: String, val start: String, val end: String, val daysAhead: Int = 0)
+    private data class FastInfo(val name: String, val start: String, val end: String, val daysAhead: Int = 0, val day: String = "")
 
     // Scan from today through the next 7 days — covers "display from Shabbat before the fast"
     private fun findUpcomingFast(
@@ -340,7 +348,9 @@ object ZmanimCalculator {
                     }
                 }
                 val end = fmt(tzaitZmaniyot(fastZmanim), tz)
-                return FastInfo(name, start, end, daysAhead)
+                val fmt2 = HebrewDateFormatter().apply { isHebrewFormat = true }
+                val fastDayStr = "יום ${fmt2.formatDayOfWeek(scanCal)}, ${fmt2.formatHebrewNumber(scanCal.jewishDayOfMonth)}' ${fmt2.formatMonth(scanCal)}"
+                return FastInfo(name, start, end, daysAhead, fastDayStr)
             }
             scanCal.forward(Calendar.DATE, 1)
         }
@@ -747,6 +757,43 @@ object ZmanimCalculator {
             scan.forward(Calendar.DATE, 1)
         }
         return (Calendar.SATURDAY - base.calendar.get(Calendar.DAY_OF_WEEK) + 7) % 7
+    }
+
+    // Selichot period: Mizrachi = all of Elul; Ashkenaz = from the Sunday ≥4 days before RH
+    private fun isSelichotPeriod(jewishCal: JewishCalendar, system: PrayerSystem): Boolean {
+        val month = jewishCal.jewishMonth
+        val day   = jewishCal.jewishDayOfMonth
+        if (month == JewishCalendar.TISHREI && day <= 10) return true
+        if (month != JewishCalendar.ELUL) return false
+        if (system == PrayerSystem.MIZRACHI) return true
+        // Ashkenaz: find the Sunday that is ≥4 days before 1 Tishrei
+        val rhCal = jewishCal.clone() as JewishCalendar
+        rhCal.setJewishDate(jewishCal.jewishYear + 1, JewishCalendar.TISHREI, 1)
+        val rhDow = rhCal.dayOfWeek               // Calendar.SUNDAY=1 … SATURDAY=7
+        val daysFromSunday = rhDow - Calendar.SUNDAY
+        val daysBeforeRH = if (daysFromSunday >= 4) daysFromSunday else daysFromSunday + 7
+        val selichotStart = 29 - daysBeforeRH + 1 // Elul has 29 days
+        return day >= selichotStart
+    }
+
+    // Selichot = Shacharit minus selichotOffset minutes
+    private fun selichotTimeStr(settings: AppSettings, cal: ComplexZmanimCalendar, tz: TimeZone): String {
+        val offsetMs = settings.selichotOffset * 60_000L
+        return when (settings.shacharitWeekdayMode) {
+            PrayerTimeMode.MANUAL -> {
+                val parts = settings.shacharitWeekdayTime.split(":")
+                if (parts.size != 2) return "--:--"
+                val h = parts[0].toIntOrNull() ?: return "--:--"
+                val m = parts[1].toIntOrNull() ?: return "--:--"
+                val total = h * 60 + m - settings.selichotOffset
+                if (total < 0) return "--:--"
+                "%d:%02d".format(total / 60, total % 60)
+            }
+            PrayerTimeMode.HANETZ -> fmt(
+                cal.sunrise?.let { Date(it.time + settings.shacharitWeekdayOffset * 60_000L - offsetMs) },
+                tz
+            )
+        }
     }
 
     // 20 (or 18) zmaniyot minutes (MGA sha'ah) before sunset

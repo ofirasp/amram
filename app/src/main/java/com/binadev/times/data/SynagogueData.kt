@@ -32,6 +32,7 @@ data class HebrewCalendarInfo(
     val fastName: String = "",
     val fastStart: String = "",
     val fastEnd: String = "",
+    val fastDay: String = "",
     val isAlHaNisim: Boolean = false,
     val holidayLabel: String = "",
 )
