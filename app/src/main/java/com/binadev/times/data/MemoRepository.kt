@@ -42,7 +42,7 @@ object MemoRepository {
             val p = line.split(",")
             if (p.size < 4) null
             // Hebrew dates always contain ' (e.g. "א' סיון"). If p[0] lacks it but p[3] has it,
-            // the file was saved with swapped columns — auto-correct the order.
+            //h the file was saved with swapped columns — auto-correct the order.
             else if (!p[0].trim().contains("'") && p[3].trim().contains("'")) {
                 YahrtzeitEntry(
                     name = p[0].trim(),

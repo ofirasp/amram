@@ -64,6 +64,7 @@ fun SettingsScreen(
     var kabbalatShabbatOffset  by remember { mutableIntStateOf(currentSettings.kabbalatShabbatOffset) }
     var minchaShabbatOffset    by remember { mutableIntStateOf(currentSettings.minchaShabbatOffset) }
     var arvitShabbatOffset     by remember { mutableIntStateOf(currentSettings.arvitShabbatOffset) }
+    var nightDimEnabled  by remember { mutableStateOf(currentSettings.nightDimEnabled) }
     var nightDimStart    by remember { mutableIntStateOf(currentSettings.nightDimStart) }
     var nightDimEnd      by remember { mutableIntStateOf(currentSettings.nightDimEnd) }
     var selichotOffset   by remember { mutableIntStateOf(currentSettings.selichotOffset) }
@@ -139,7 +140,7 @@ fun SettingsScreen(
                                 text = system.hebrewName,
                                 subtitle = systemDescription(system),
                                 isSelected = system == selectedSystem,
-                                modifier = if (system == PrayerSystem.entries.first()) Modifier.focusRequester(firstFocus) else Modifier,
+                                modifier = if (system == selectedSystem) Modifier.focusRequester(firstFocus) else Modifier,
                                 onClick = { selectedSystem = system },
                             )
                             Spacer(modifier = Modifier.height(6.dp))
@@ -356,25 +357,35 @@ fun SettingsScreen(
                             onToggle = { showMoedSlides = !showMoedSlides },
                         )
                     }
-                    Row(
+                    Column(
                         modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Text("עמעום לילה:", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Gold)
-                        NumberStepper(
-                            label = "התחלה",
-                            value = nightDimStart,
-                            min = 0, max = 23, wrap = true,
-                            modifier = Modifier.width(80.dp),
-                        ) { nightDimStart = it }
-                        Text("עד", fontSize = 12.sp, color = TextMuted)
-                        NumberStepper(
-                            label = "סיום",
-                            value = nightDimEnd,
-                            min = 0, max = 23, wrap = true,
-                            modifier = Modifier.width(80.dp),
-                        ) { nightDimEnd = it }
+                        SettingsCheckbox(
+                            label = "עמעום לילה",
+                            checked = nightDimEnabled,
+                            onToggle = { nightDimEnabled = !nightDimEnabled },
+                        )
+                        if (nightDimEnabled) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                NumberStepper(
+                                    label = "התחלה",
+                                    value = nightDimStart,
+                                    min = 0, max = 23, wrap = true,
+                                    modifier = Modifier.width(80.dp),
+                                ) { nightDimStart = it }
+                                Text("עד", fontSize = 12.sp, color = TextMuted)
+                                NumberStepper(
+                                    label = "סיום",
+                                    value = nightDimEnd,
+                                    min = 0, max = 23, wrap = true,
+                                    modifier = Modifier.width(80.dp),
+                                ) { nightDimEnd = it }
+                            }
+                        }
                     }
                     Spacer(modifier = Modifier.weight(1f))
                 }
@@ -426,6 +437,7 @@ fun SettingsScreen(
                                     kabbalatShabbatOffset  = kabbalatShabbatOffset,
                                     minchaShabbatOffset    = minchaShabbatOffset,
                                     arvitShabbatOffset     = arvitShabbatOffset,
+                                    nightDimEnabled        = nightDimEnabled,
                                     nightDimStart          = nightDimStart,
                                     nightDimEnd            = nightDimEnd,
                                     selichotOffset         = selichotOffset,

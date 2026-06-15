@@ -29,6 +29,7 @@ fun PrayerTimesPanel(
     fastEnd: String = "",
     fastDay: String = "",
     holidayLabel: String = "",
+    isShabbatMevorchim: Boolean = false,
 ) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Column(
@@ -45,6 +46,10 @@ fun PrayerTimesPanel(
 
             PrayerSectionHeader("זמני תפילות לשבת")
             shabbatPrayers.forEach { PrayerRow(it) }
+            if (isShabbatMevorchim) {
+                PrayerDivider()
+                PrayerSectionHeader("שבת מברכים")
+            }
 
             if (fastName.isNotEmpty()) {
                 PrayerDivider()

@@ -41,23 +41,17 @@ fun SidePanel(
             SideDivider()
 
             // Seasonal flags
-            if (hebrewInfo.isMashivHaruach) FlagChip("משיב הרוח")
-            else FlagChip("מוריד הטל")
-            if (hebrewInfo.isWinterBlessingSeason) FlagChip("ברך עלינו") else FlagChip("ברכנו")
+            if (settings.prayerSystem == com.binadev.times.data.PrayerSystem.ASHKENAZ) {
+                if (hebrewInfo.isMashivHaruach) FlagChip("מוריד הגשם") else FlagChip("מוריד הטל")
+            } else {
+                if (hebrewInfo.isMashivHaruach) FlagChip("משיב הרוח") else FlagChip("מוריד הטל")
+                if (hebrewInfo.isWinterBlessingSeason) FlagChip("ברך עלינו") else FlagChip("ברכנו")
+            }
+            if (hebrewInfo.isKiddushLevana) FlagChip("קידוש לבנה")
             if (hebrewInfo.isYaaleVeyavo) FlagChip("יעלה ויבוא")
             if (hebrewInfo.isAlHaNisim)  FlagChip("על הניסים")
-            if (hebrewInfo.isShabbatMevorchim) FlagChip("שבת מברכים")
-            if (hebrewInfo.moladText.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = hebrewInfo.moladText,
-                    fontSize = 11.5.sp,
-                    lineHeight = 13.sp,
-                    color = White.copy(alpha = 0.7f),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
             if (hebrewInfo.isTachanunOmitted) FlagChip("א\"א תחנון")
+            if (hebrewInfo.isTachanunMinchaOmitted) FlagChip("א\"א תחנון במנחה")
             if (hebrewInfo.isTzidkatchaOmitted) FlagChip("א\"א צדקתך")
 
 

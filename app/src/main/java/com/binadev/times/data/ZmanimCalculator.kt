@@ -88,6 +88,7 @@ object ZmanimCalculator {
                 ZmanItem("צאת הכוכבים",       fmt(tzait18, tz)),
                 ZmanItem("הדלקת נרות",        fmt(candleLightingZmaniyot(erevCal, system), tz)),
                 ZmanItem("צאת השבת",          fmt(shabbatCal.tzaisGeonim8Point5Degrees, tz)),
+                ZmanItem("צאת השבת ר\"ת",     fmt(shabbatCal.tzais16Point1Degrees, tz)),
             )
             PrayerSystem.ASHKENAZ -> listOf(
                 ZmanItem("עלות השחר",         fmt(cal.alos90, tz)),
@@ -216,9 +217,43 @@ object ZmanimCalculator {
             val month = jewishCal.jewishMonth
             val day = jewishCal.jewishDayOfMonth
 
-            // Shabbat Mevorchim week: true Sun→Sat when this week's Shabbat is Shabbat Mevorchim
+            // Show molad text:
+            // - RC on Fri/Sat → show from Shabbat Mevorchim (isMevorchimWeek, up to 7 days before)
+            // - RC on Sun–Thu  → show only within 5 days before RC
+            // - Always show on RC day itself
             val isMevorchimWeek = isShabbatMevorchimWeek(jewishCal)
-            val moladStr = if (isMevorchimWeek) getMoladString(jewishCal, formatter) else ""
+            val isRoshChodesh = jewishCal.isRoshChodesh
+            val isNearRC = jewishCal.jewishMonth != JewishCalendar.ELUL && run {
+                val future = jewishCal.clone() as JewishCalendar
+                (1..5).any { future.forward(Calendar.DATE, 1); future.isRoshChodesh }
+            }
+            // isMevorchimWeek applies only when next RC falls on Fri or Sat
+            val rcOnFriOrSat = isMevorchimWeek && jewishCal.jewishMonth != JewishCalendar.ELUL && run {
+                val future = jewishCal.clone() as JewishCalendar
+                var result = false
+                for (i in 1..14) {
+                    future.forward(Calendar.DATE, 1)
+                    if (future.isRoshChodesh) {
+                        result = future.dayOfWeek == Calendar.FRIDAY || future.dayOfWeek == Calendar.SATURDAY
+                        break
+                    }
+                }
+                result
+            }
+            val moladStr = when {
+                !rcOnFriOrSat && !isRoshChodesh && !isNearRC -> ""
+                // day 1 of new month: use yesterday's calendar so getMoladString targets THIS month
+                isRoshChodesh && day == 1 -> {
+                    val israelTz = TimeZone.getTimeZone("Asia/Jerusalem")
+                    val yesterdayCal = Calendar.getInstance(israelTz).apply {
+                        set(jewishCal.gregorianYear, jewishCal.gregorianMonth, jewishCal.gregorianDayOfMonth)
+                        add(Calendar.DATE, -1)
+                    }
+                    val prevCal = JewishCalendar(yesterdayCal).also { it.inIsrael = true }
+                    getMoladString(prevCal, formatter, nowMs)
+                }
+                else -> getMoladString(jewishCal, formatter, nowMs)
+            }
 
             // Omer count
             val omerDay = jewishCal.dayOfOmer
@@ -229,6 +264,16 @@ object ZmanimCalculator {
             val noTachanunPeriod = isTachanunRules(jewishCal)
             val tachanunOmitted = !isShabbat && noTachanunPeriod
             val tzidkatchaOmitted = isShabbat && noTachanunPeriod
+            val jewishCalTomorrow = jewishCal.clone() as JewishCalendar
+            jewishCalTomorrow.forward(Calendar.DATE, 1)
+            val tachanunMinchaOmitted = !isShabbat && !noTachanunPeriod && isTachanunRules(jewishCalTomorrow)
+
+            // קידוש לבנה — מזרחי: ימים 3–14, אשכנז: 7–13; לא ביוה"כ ותשעה באב
+            val klEarliest = if (system == PrayerSystem.ASHKENAZ) 3 else 7
+            val klLatest   = if (system == PrayerSystem.ASHKENAZ) 14 else 13
+            val isYomKippur = month == JewishCalendar.TISHREI && day == 10
+            val isTishaBeav = month == JewishCalendar.AV      && day == 9
+            val isKiddushLevana = day in klEarliest..klLatest && !isYomKippur && !isTishaBeav
 
             // שם החג / יום מיוחד
             val holidayLabel = getHolidayLabel(jewishCal)
@@ -247,7 +292,9 @@ object ZmanimCalculator {
                 isWinterBlessingSeason = isWinterBlessingSeason(month, day),
                 moladText = moladStr,
                 omerText = omerStr,
+                isKiddushLevana = isKiddushLevana,
                 isTachanunOmitted = tachanunOmitted,
+                isTachanunMinchaOmitted = tachanunMinchaOmitted,
                 isTzidkatchaOmitted = tzidkatchaOmitted,
                 fastName = "",
                 isAlHaNisim = alHaNisim,
@@ -473,26 +520,44 @@ object ZmanimCalculator {
 
     // ── Molad ─────────────────────────────────────────────────────────────────
 
-    private fun getMoladString(cal: JewishCalendar, formatter: HebrewDateFormatter): String {
+    private fun hebrewDayName(dayOfWeek: Int) = when (dayOfWeek) {
+        Calendar.SUNDAY    -> "ראשון"
+        Calendar.MONDAY    -> "שני"
+        Calendar.TUESDAY   -> "שלישי"
+        Calendar.WEDNESDAY -> "רביעי"
+        Calendar.THURSDAY  -> "חמישי"
+        Calendar.FRIDAY    -> "שישי"
+        Calendar.SATURDAY  -> "שבת"
+        else               -> ""
+    }
+
+    private fun getMoladString(cal: JewishCalendar, formatter: HebrewDateFormatter, nowMs: Long = System.currentTimeMillis()): String {
         return try {
             val next = cal.clone() as JewishCalendar
             next.setJewishDate(cal.jewishYear, cal.jewishMonth, cal.daysInJewishMonth)
-            next.forward(Calendar.DATE, 1)
+            val lastDayOfMonth = cal.daysInJewishMonth
+            val rcFirstDow = next.dayOfWeek        // 30th of current month = first day of RC (if 2-day RC)
+            next.forward(Calendar.DATE, 1)          // now at 1st of next month
+            val rcSecondDow = next.dayOfWeek        // 1st of next month
+
             val tz = TimeZone.getTimeZone("Asia/Jerusalem")
             val timeFmt = SimpleDateFormat("HH:mm", Locale.getDefault()).apply { timeZone = tz }
             val moladDate = next.moladAsDate
             val moladCal = Calendar.getInstance(tz).apply { time = moladDate }
-            val dayName = when (moladCal.get(Calendar.DAY_OF_WEEK)) {
-                Calendar.SUNDAY    -> "ראשון"
-                Calendar.MONDAY    -> "שני"
-                Calendar.TUESDAY   -> "שלישי"
-                Calendar.WEDNESDAY -> "רביעי"
-                Calendar.THURSDAY  -> "חמישי"
-                Calendar.FRIDAY    -> "שישי"
-                Calendar.SATURDAY  -> "שבת"
-                else               -> ""
+            val moladDayName = hebrewDayName(moladCal.get(Calendar.DAY_OF_WEEK))
+
+            val monthName = formatter.formatMonth(next)
+
+            if (nowMs >= moladDate.time) {
+                return "ראש חודש $monthName"
             }
-            "מולד חודש ${formatter.formatMonth(next)}: יום $dayName ${timeFmt.format(moladDate)}"
+
+            val rcText = if (lastDayOfMonth == 30)
+                "ר\"ח בימים ${hebrewDayName(rcFirstDow)} ו${hebrewDayName(rcSecondDow)}"
+            else
+                "ר\"ח ביום ${hebrewDayName(rcSecondDow)}"
+
+            "מולד חודש $monthName: יום $moladDayName ${timeFmt.format(moladDate)} $rcText"
         } catch (e: Exception) {
             ""
         }

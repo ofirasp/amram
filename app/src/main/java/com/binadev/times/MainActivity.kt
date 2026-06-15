@@ -33,8 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
-import com.binadev.times.BuildConfig
-import com.binadev.times.R
+import com.binadev.zmanim.BuildConfig
+import com.binadev.zmanim.R
 import com.binadev.times.data.*
 import com.kosherjava.zmanim.hebrewcalendar.JewishCalendar
 import com.binadev.times.ui.ContentArea
@@ -189,11 +189,12 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
         }
     }
 
-    // Auto-advance slides every 8 seconds — restarts when slide count changes to re-capture slides
+    // Auto-advance slides — Torah slides get 12s (1.5×), others 8s
     LaunchedEffect(slides.size) {
         if (slideIndex >= slides.size) slideIndex = 0
         while (true) {
-            delay(8_000)
+            val isTorahSlide = slides.getOrNull(slideIndex)?.content is SlideContent.TorahLesson
+            delay(if (isTorahSlide) 14_400L else 8_000L)
             slideIndex = (slideIndex + 1) % slides.size
         }
     }
@@ -230,7 +231,7 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
 
     // Night dimming overlay — more reliable than window brightness on Android TV
     var isNightDim by remember { mutableStateOf(false) }
-    LaunchedEffect(timeTick, settings.nightDimStart, settings.nightDimEnd, settings.testDateTime, daily.tzaitMs) {
+    LaunchedEffect(timeTick, settings.nightDimEnabled, settings.nightDimStart, settings.nightDimEnd, settings.testDateTime, daily.tzaitMs) {
         val nowMs = settings.testDateTime ?: System.currentTimeMillis()
         val hour = Calendar.getInstance().apply { timeInMillis = nowMs }.get(Calendar.HOUR_OF_DAY)
         val s = settings.nightDimStart
@@ -248,7 +249,7 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
             (jewishCal.jewishMonth == JewishCalendar.SIVAN   && jewishCal.jewishDayOfMonth == 6)  ||
             (jewishCal.jewishMonth == JewishCalendar.TISHREI && jewishCal.jewishDayOfMonth == 21)
 
-        isNightDim = isNightHour && !isAllNightHoliday
+        isNightDim = settings.nightDimEnabled && isNightHour && !isAllNightHoliday
     }
 
     Box(modifier = Modifier.fillMaxSize().offset { shiftOffsets[shiftIndex] }) {
@@ -411,6 +412,7 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
                     fastEnd = daily.hebrewInfo.fastEnd,
                     fastDay = daily.hebrewInfo.fastDay,
                     holidayLabel = daily.hebrewInfo.holidayLabel,
+                    isShabbatMevorchim = daily.hebrewInfo.isShabbatMevorchim,
                 )
             }
 
@@ -431,6 +433,21 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
                             .basicMarquee(),
                     )
                 }
+                if (daily.hebrewInfo.moladText.isNotEmpty()) {
+                    Text(
+                        text = daily.hebrewInfo.moladText,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFD32F2F),
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 4.dp)
+                            .basicMarquee(iterations = Int.MAX_VALUE),
+                    )
+                }
                 Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                     AnimatedContent(
                         targetState = slideIndex,
@@ -444,6 +461,7 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
                             slide = slides[idx],
                             slideIndex = idx,
                             totalSlides = slides.size,
+                            isCompact = daily.hebrewInfo.moladText.isNotEmpty() || daily.hebrewInfo.omerText.isNotEmpty(),
                         )
                     }
                     // Slide indicator — outside AnimatedContent so it stays fixed
@@ -498,7 +516,7 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
         )
         // Gregorian date + version — bottom-right (BottomStart in RTL layout)
         Text(
-            text = "ver ${BuildConfig.VERSION_NAME}  $currentDate",
+            text = "הגדרות ← OK ארוך  ·  $currentDate  ver ${BuildConfig.VERSION_NAME}",
             fontSize = 12.sp,
             color = White.copy(alpha = 0.6f),
             modifier = Modifier

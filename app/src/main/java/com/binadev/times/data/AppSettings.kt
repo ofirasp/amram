@@ -53,6 +53,7 @@ data class AppSettings(
     val kabbalatShabbatOffset: Int = 0,
     val minchaShabbatOffset: Int = -30,
     val arvitShabbatOffset: Int = 0,
+    val nightDimEnabled: Boolean = true,
     val nightDimStart: Int = 22,
     val nightDimEnd: Int = 4,
     val selichotOffset: Int = 60,
@@ -77,6 +78,7 @@ object SettingsStore {
     private const val KEY_KAB_SH_OFFSET    = "kab_sh_offset"
     private const val KEY_MIN_SH_OFFSET   = "min_sh_offset"
     private const val KEY_ARVIT_SH_OFFSET = "arvit_sh_offset"
+    private const val KEY_NIGHT_DIM_ENABLED = "night_dim_enabled"
     private const val KEY_NIGHT_DIM_START  = "night_dim_start"
     private const val KEY_NIGHT_DIM_END    = "night_dim_end"
     private const val KEY_SELICHOT_OFFSET  = "selichot_offset"
@@ -102,6 +104,7 @@ object SettingsStore {
             .putInt(KEY_KAB_SH_OFFSET,    settings.kabbalatShabbatOffset)
             .putInt(KEY_MIN_SH_OFFSET,    settings.minchaShabbatOffset)
             .putInt(KEY_ARVIT_SH_OFFSET,  settings.arvitShabbatOffset)
+            .putBoolean(KEY_NIGHT_DIM_ENABLED, settings.nightDimEnabled)
             .putInt(KEY_NIGHT_DIM_START,  settings.nightDimStart)
             .putInt(KEY_NIGHT_DIM_END,    settings.nightDimEnd)
             .putInt(KEY_SELICHOT_OFFSET,  settings.selichotOffset)
@@ -145,6 +148,7 @@ object SettingsStore {
             kabbalatShabbatOffset  = prefs.getInt(KEY_KAB_SH_OFFSET, 0),
             minchaShabbatOffset    = prefs.getInt(KEY_MIN_SH_OFFSET, -30),
             arvitShabbatOffset     = prefs.getInt(KEY_ARVIT_SH_OFFSET, 0),
+            nightDimEnabled        = prefs.getBoolean(KEY_NIGHT_DIM_ENABLED, true),
             nightDimStart          = prefs.getInt(KEY_NIGHT_DIM_START, 22),
             nightDimEnd            = prefs.getInt(KEY_NIGHT_DIM_END, 4),
             selichotOffset         = prefs.getInt(KEY_SELICHOT_OFFSET, 60),

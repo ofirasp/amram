@@ -7,8 +7,16 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
-import com.binadev.times.R
+import com.binadev.zmanim.R
 import com.binadev.times.data.ContentSlide
 import com.binadev.times.data.SlideContent
 import com.binadev.times.data.YahrtzeitEntry
@@ -33,7 +41,7 @@ import com.binadev.times.ui.theme.*
 
 @OptIn(ExperimentalTvMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
-fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int) {
+fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int, isCompact: Boolean = false) {
     val context = LocalContext.current
     val torahImage = remember(slide) {
         val asset = (slide.content as? SlideContent.TorahLesson)?.imageAsset
@@ -98,9 +106,9 @@ fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int) {
 
                 // Slide-type-specific content
                 when (val content = slide.content) {
-                    is SlideContent.Announcements -> AnnouncementsContent(content)
+                    is SlideContent.Announcements -> AnnouncementsContent(content, isCompact)
                     is SlideContent.TorahLesson -> TorahContent(slide.title, content)
-                    is SlideContent.Yahrzeits -> YahrtzeitContent(content)
+                    is SlideContent.Yahrzeits -> YahrtzeitContent(content, isCompact)
                 }
             }
 
@@ -110,7 +118,7 @@ fun ContentArea(slide: ContentSlide, slideIndex: Int, totalSlides: Int) {
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-private fun AnnouncementsContent(content: SlideContent.Announcements) {
+private fun AnnouncementsContent(content: SlideContent.Announcements, isCompact: Boolean = false) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -125,9 +133,9 @@ private fun AnnouncementsContent(content: SlideContent.Announcements) {
             ) {
                 Text(
                     text = announcement,
-                    fontSize = 20.sp,
+                    fontSize = if (isCompact) 16.sp else 20.sp,
                     color = TextPrimary,
-                    lineHeight = 32.sp,
+                    lineHeight = if (isCompact) 24.sp else 32.sp,
                     textAlign = TextAlign.Start,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -139,24 +147,35 @@ private fun AnnouncementsContent(content: SlideContent.Announcements) {
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun TorahContent(title: String, content: SlideContent.TorahLesson) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Top
+    val scrollState = rememberScrollState()
+    var lineCount by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(lineCount) {
+        if (lineCount > 6) {
+            delay(3_000)
+            scrollState.animateScrollTo(
+                scrollState.maxValue,
+                animationSpec = tween(durationMillis = 8_000, easing = LinearEasing),
+            )
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(8.dp))
+            .background(NavyDark.copy(alpha = 0.85f))
+            .padding(horizontal = 24.dp, vertical = 20.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .background(NavyDark.copy(alpha = 0.85f))
-                .padding(horizontal = 24.dp, vertical = 20.dp)
-        ) {
+        Column(modifier = Modifier.fillMaxWidth().verticalScroll(scrollState)) {
             Text(
                 text = content.body,
                 fontSize = 15.sp,
                 color = TextPrimary,
                 lineHeight = 18.sp,
                 textAlign = TextAlign.Start,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                onTextLayout = { lineCount = it.lineCount },
             )
         }
     }
@@ -164,7 +183,7 @@ private fun TorahContent(title: String, content: SlideContent.TorahLesson) {
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-private fun YahrtzeitContent(content: SlideContent.Yahrzeits) {
+private fun YahrtzeitContent(content: SlideContent.Yahrzeits, isCompact: Boolean = false) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -175,7 +194,7 @@ private fun YahrtzeitContent(content: SlideContent.Yahrzeits) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 rowEntries.forEach { entry ->
-                    YahrtzeitCard(entry, modifier = Modifier.weight(1f))
+                    YahrtzeitCard(entry, isCompact = isCompact, modifier = Modifier.weight(1f))
                 }
                 if (rowEntries.size == 1) {
                     Spacer(modifier = Modifier.weight(1f))
@@ -187,7 +206,7 @@ private fun YahrtzeitContent(content: SlideContent.Yahrzeits) {
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-private fun YahrtzeitCard(entry: YahrtzeitEntry, modifier: Modifier = Modifier) {
+private fun YahrtzeitCard(entry: YahrtzeitEntry, isCompact: Boolean = false, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
@@ -205,7 +224,7 @@ private fun YahrtzeitCard(entry: YahrtzeitEntry, modifier: Modifier = Modifier) 
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = "${entry.name} ${entry.relationship} ${entry.motherName}",
-                fontSize = 18.sp,
+                fontSize = if (isCompact) 15.sp else 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = White,
                 textAlign = TextAlign.Center

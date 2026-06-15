@@ -14,3 +14,7 @@ local.properties
 # OS
 .DS_Store
 Thumbs.db
+
+# Signing
+*.jks
+*.keystore
