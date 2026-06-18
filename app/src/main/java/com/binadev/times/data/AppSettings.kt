@@ -43,6 +43,7 @@ data class AppSettings(
     val titleLine1: String = "בית הכנסת היכל עמרם",
     val titleLine2: String = "ואני ברב חסדך אבוא ביתך אשתחווה אל היכל קדשך ביראתך",
     val showMoedSlides: Boolean = true,
+    val showYahrtzeitSlides: Boolean = true,
     val shacharitWeekdayMode: PrayerTimeMode = PrayerTimeMode.MANUAL,
     val shacharitWeekdayTime: String = "5:45",
     val shacharitWeekdayOffset: Int = 0,
@@ -68,6 +69,7 @@ object SettingsStore {
     private const val KEY_TITLE_LINE1 = "title_line1"
     private const val KEY_TITLE_LINE2 = "title_line2"
     private const val KEY_SHOW_MOED    = "show_moed"
+    private const val KEY_SHOW_YAHRZEITS = "show_yahrzeits"
     private const val KEY_SHA_WD_MODE   = "sha_wd_mode"
     private const val KEY_SHA_WD_TIME   = "sha_wd_time"
     private const val KEY_SHA_WD_OFFSET = "sha_wd_offset"
@@ -94,6 +96,7 @@ object SettingsStore {
             .putString(KEY_TITLE_LINE1, settings.titleLine1)
             .putString(KEY_TITLE_LINE2, settings.titleLine2)
             .putBoolean(KEY_SHOW_MOED, settings.showMoedSlides)
+            .putBoolean(KEY_SHOW_YAHRZEITS, settings.showYahrtzeitSlides)
             .putString(KEY_SHA_WD_MODE,   settings.shacharitWeekdayMode.name)
             .putString(KEY_SHA_WD_TIME,   settings.shacharitWeekdayTime)
             .putInt(KEY_SHA_WD_OFFSET,    settings.shacharitWeekdayOffset)
@@ -127,6 +130,7 @@ object SettingsStore {
         val titleLine1 = prefs.getString(KEY_TITLE_LINE1, null) ?: "בית הכנסת היכל עמרם"
         val titleLine2 = prefs.getString(KEY_TITLE_LINE2, null) ?: "ואני ברב חסדך אבוא ביתך אשתחווה אל היכל קדשך ביראתך"
         val showMoedSlides = prefs.getBoolean(KEY_SHOW_MOED, true)
+        val showYahrtzeitSlides = prefs.getBoolean(KEY_SHOW_YAHRZEITS, true)
         fun loadMode(key: String) = runCatching {
             PrayerTimeMode.valueOf(prefs.getString(key, "") ?: "")
         }.getOrDefault(PrayerTimeMode.MANUAL)
@@ -138,6 +142,7 @@ object SettingsStore {
             titleLine1 = titleLine1,
             titleLine2 = titleLine2,
             showMoedSlides = showMoedSlides,
+            showYahrtzeitSlides = showYahrtzeitSlides,
             shacharitWeekdayMode   = loadMode(KEY_SHA_WD_MODE),
             shacharitWeekdayTime   = prefs.getString(KEY_SHA_WD_TIME, null) ?: "5:45",
             shacharitWeekdayOffset = prefs.getInt(KEY_SHA_WD_OFFSET, 0),

@@ -151,8 +151,12 @@ fun SynagogueScreen(settings: AppSettings, yahrtzeitReloadKey: Int = 0) {
     var daily by remember { mutableStateOf(DailyCalculations()) }
     var yahrzeits by remember { mutableStateOf<List<YahrtzeitEntry>>(emptyList()) }
     var moedSlides by remember { mutableStateOf<List<ContentSlide>>(emptyList()) }
-    val slides = remember(settings.announcements, yahrzeits, moedSlides) {
-        SynagogueData.buildSlides(settings.announcements, yahrzeits, moedSlides)
+    val slides = remember(settings.announcements, yahrzeits, moedSlides, settings.showYahrtzeitSlides) {
+        SynagogueData.buildSlides(
+            settings.announcements,
+            if (settings.showYahrtzeitSlides) yahrzeits else emptyList(),
+            moedSlides,
+        )
     }
 
     // ACTION_TIME_TICK fires every minute — use it as the reliable clock tick

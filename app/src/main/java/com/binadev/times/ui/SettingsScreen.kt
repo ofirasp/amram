@@ -54,6 +54,7 @@ fun SettingsScreen(
     val firstFocus = remember { FocusRequester() }
 
     var showMoedSlides by remember { mutableStateOf(currentSettings.showMoedSlides) }
+    var showYahrtzeitSlides by remember { mutableStateOf(currentSettings.showYahrtzeitSlides) }
     var shacharitWeekdayMode   by remember { mutableStateOf(currentSettings.shacharitWeekdayMode) }
     var shacharitWeekdayTime   by remember { mutableStateOf(currentSettings.shacharitWeekdayTime) }
     var shacharitWeekdayOffset by remember { mutableIntStateOf(currentSettings.shacharitWeekdayOffset) }
@@ -350,11 +351,19 @@ fun SettingsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Box(modifier = Modifier.weight(1f)) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
                         SettingsCheckbox(
                             label = "הצג שקפי מועדים",
                             checked = showMoedSlides,
                             onToggle = { showMoedSlides = !showMoedSlides },
+                        )
+                        SettingsCheckbox(
+                            label = "הצג שקפי השכבות",
+                            checked = showYahrtzeitSlides,
+                            onToggle = { showYahrtzeitSlides = !showYahrtzeitSlides },
                         )
                     }
                     Column(
@@ -427,6 +436,7 @@ fun SettingsScreen(
                                     titleLine1 = titleLine1,
                                     titleLine2 = titleLine2,
                                     showMoedSlides = showMoedSlides,
+                                    showYahrtzeitSlides = showYahrtzeitSlides,
                                     shacharitWeekdayMode   = shacharitWeekdayMode,
                                     shacharitWeekdayTime   = shacharitWeekdayTime,
                                     shacharitWeekdayOffset = shacharitWeekdayOffset,
