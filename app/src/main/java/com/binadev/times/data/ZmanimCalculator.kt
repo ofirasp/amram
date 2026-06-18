@@ -99,7 +99,7 @@ object ZmanimCalculator {
                 ZmanItem("שקיעה",             fmt(cal.sunset, tz)),
                 ZmanItem("צאת הכוכבים",       fmt(tzait18, tz)),
                 ZmanItem("הדלקת נרות",        fmt(candleLightingZmaniyot(erevCal, system), tz)),
-                ZmanItem("צאת השבת",          fmt(shabbatCal.tzais72, tz)),
+                ZmanItem("צאת השבת",          fmt(shabbatCal.tzaisGeonim8Point5Degrees, tz)),
             )
         }
     }
