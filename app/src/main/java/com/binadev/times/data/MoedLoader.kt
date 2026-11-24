@@ -11,7 +11,7 @@ object MoedLoader {
     fun load(context: Context, testDateTimeMs: Long? = null, tzaitMs: Long? = null): List<ContentSlide> {
         val nowMs = testDateTimeMs ?: System.currentTimeMillis()
         val jewishCal = JewishCalendar(Date(nowMs))
-        if (tzaitMs != null && nowMs > tzaitMs) jewishCal.forward(Calendar.DATE, 1)
+        if (tzaitMs   != null && nowMs > tzaitMs) jewishCal.forward(Calendar.DATE, 1)
         val today: JewishDate = jewishCal
         val todayAbs = today.absDate
         val year = today.jewishYear

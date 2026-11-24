@@ -684,7 +684,10 @@ object ZmanimCalculator {
             JewishCalendar.Parsha.CHUKAS               -> "ויפתח הגלעדי"
             JewishCalendar.Parsha.BALAK                -> "והיה שארית"
             JewishCalendar.Parsha.CHUKAS_BALAK         -> "והיה שארית"
-            JewishCalendar.Parsha.PINCHAS              -> "ויהי יד"
+            JewishCalendar.Parsha.PINCHAS              ->
+                // When Pinchas falls in the Three Weeks (Tammuz >= 18), read the first retribution haftarah
+                if (shabbatCal.jewishMonth == JewishCalendar.TAMMUZ && shabbatCal.jewishDayOfMonth >= 18)
+                    "דברי ירמיהו" else "ויהי יד"
             JewishCalendar.Parsha.MATOS                -> "דברי ירמיהו"
             JewishCalendar.Parsha.MASEI                -> "שמעו דבר"
             JewishCalendar.Parsha.MATOS_MASEI          -> "שמעו דבר"
@@ -763,7 +766,9 @@ object ZmanimCalculator {
             JewishCalendar.Parsha.CHUKAS               -> "שופטים יא"
             JewishCalendar.Parsha.BALAK,
             JewishCalendar.Parsha.CHUKAS_BALAK         -> "מיכה ה"
-            JewishCalendar.Parsha.PINCHAS              -> "מלכים א יח"
+            JewishCalendar.Parsha.PINCHAS              ->
+                if (shabbatCal.jewishMonth == JewishCalendar.TAMMUZ && shabbatCal.jewishDayOfMonth >= 18)
+                    "ירמיה א" else "מלכים א יח"
             JewishCalendar.Parsha.MATOS                -> "ירמיה א"
             JewishCalendar.Parsha.MASEI,
             JewishCalendar.Parsha.MATOS_MASEI          -> "ירמיה ב"
