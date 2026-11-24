@@ -17,7 +17,7 @@ android {
 
     defaultConfig {
         applicationId = "com.binadev.zmanim"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 35
         versionCode = 13
         versionName = "1.9"
