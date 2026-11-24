@@ -354,7 +354,7 @@ object ZmanimCalculator {
             JewishCalendar.SIVAN   -> if (day <= 12) return true                  // שבועות + ימי איסרו חג
             JewishCalendar.AV      -> if (day == 9 || day == 15) return true      // תשעה באב + ט"ו באב
             JewishCalendar.ELUL    -> if (day == 29) return true                  // ערב ראש השנה
-            JewishCalendar.TISHREI -> if (day <= 23) return true                  // א' תשרי–כ"ג (ר"ה–אסרו חג סוכות)
+            JewishCalendar.TISHREI -> if (day in 1..2 || day == 9 || day == 10 || day in 15..23) return true  // ר"ה, ערב יוה"כ, יוה"כ, סוכות–אסרו חג; ימי תשובה (ג'–ח') וימי בין יוה"כ לסוכות (י"א–י"ד) — אומרים תחנון
         }
         return false
     }
